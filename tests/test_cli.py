@@ -41,3 +41,65 @@ def test_cli_trace_emits_operator_path(tmp_path, capsys):
     assert main(["trace", str(receipt)]) == 0
     output = json.loads(capsys.readouterr().out)
     assert [step["step"] for step in output] == ["REACH", "FENCE", "BIND"]
+
+
+def test_cli_resolve_live_emits_pinned_receipt_and_bounded_documents(tmp_path, capsys):
+    manifest = tmp_path / "manifest.json"
+    evidence = tmp_path / "evidence.json"
+    manifest.write_text(json.dumps({
+        "schema": "static-collective/current-organ/v0",
+        "organ": "loadout",
+        "owner": "the-static-collective/LOADOUT",
+        "entrypoint": "skills/loadout/SKILL.md",
+        "state": None,
+        "allowed_roots": ["skills/loadout", "docs"],
+        "resolution": "default-branch-head-then-pin",
+        "fallback": "embedded-bootstrap",
+    }))
+    evidence.write_text(json.dumps({
+        "resolved_ref": "main",
+        "resolved_sha": "0123456789abcdef0123456789abcdef01234567",
+        "files": {
+            "skills/loadout/SKILL.md": "skill",
+            "docs/needed.md": "needed",
+            "docs/unrequested.md": "do not load",
+        },
+    }))
+
+    assert main([
+        "resolve-live",
+        str(manifest),
+        str(evidence),
+        "--path",
+        "docs/needed.md",
+    ]) == 0
+    output = json.loads(capsys.readouterr().out)
+    assert output["status"] == "RESOLVED"
+    assert output["receipt"]["resolved_sha"] == "0123456789abcdef0123456789abcdef01234567"
+    assert output["receipt"]["loaded"] == ["skills/loadout/SKILL.md", "docs/needed.md"]
+    assert "docs/unrequested.md" not in output["documents"]
+
+
+def test_cli_resolve_live_returns_two_for_unresolved_evidence(tmp_path, capsys):
+    manifest = tmp_path / "manifest.json"
+    evidence = tmp_path / "evidence.json"
+    manifest.write_text(json.dumps({
+        "schema": "static-collective/current-organ/v0",
+        "organ": "loadout",
+        "owner": "the-static-collective/LOADOUT",
+        "entrypoint": "skills/loadout/SKILL.md",
+        "state": None,
+        "allowed_roots": ["skills/loadout"],
+        "resolution": "default-branch-head-then-pin",
+        "fallback": "embedded-bootstrap",
+    }))
+    evidence.write_text(json.dumps({
+        "resolved_ref": "main",
+        "resolved_sha": "0123456789abcdef0123456789abcdef01234567",
+        "files": {},
+    }))
+
+    assert main(["resolve-live", str(manifest), str(evidence)]) == 2
+    output = json.loads(capsys.readouterr().out)
+    assert output["status"] == "UNRESOLVED"
+    assert output["receipt"]["freshness"] == "UNRESOLVED"
