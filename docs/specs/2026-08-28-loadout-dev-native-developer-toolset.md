@@ -156,12 +156,13 @@ provider availability != native binding
 
 ## 4. Native developer grammar
 
-The first vocabulary is deliberately small.
+The first primitive vocabulary is deliberately small.
 
 ```text
 ORIENT
 CUT
 CONTRACT
+CLASSIFY
 DISCOVER
 SELECT
 BIND
@@ -177,11 +178,21 @@ REPAIR
 READY
 ADMIT
 LAND
+PUBLISH
 RECEIPT
 REFUSE
 ```
 
 These are workflow-level verbs, not automatically executable commands.
+
+Some workflow diagrams use **derived labels** for readability. They do not create new ambient capabilities:
+
+```text
+OBSERVE    := bounded read-only PROBE + WITNESS
+REPRODUCE  := repeat declared PROBE until the observed condition is attributable
+TRACE      := ordered bounded PROBE/WITNESS traversal toward an origin
+EXPLORE    := compare bounded alternatives through PRESS/PROPOSE without mutation authority
+```
 
 ### 4.1 Orientation and constitution
 
@@ -193,6 +204,9 @@ Declare the bounded task world: repositories, issue/PR/docs targets, relevant st
 
 **CONTRACT**  
 Declare desired behavior, acceptance conditions, non-goals, and unresolved decisions.
+
+**CLASSIFY**  
+Type the task, capability, effect, finding, or state transition according to declared semantics rather than caller labels.
 
 **DISCOVER**  
 Find candidate capabilities or bodies without invoking them.
@@ -243,7 +257,10 @@ Record that the current exact state satisfies a declared readiness predicate. RE
 Cross an owner-local gate that authorizes a specific consequence against a specific current state.
 
 **LAND**  
-Execute the previously admitted consequence through an effectful adapter.
+Execute the previously admitted repository/project consequence through an effectful adapter.
+
+**PUBLISH**  
+Execute a previously admitted publication consequence through a provider membrane such as a documentation change-request merge.
 
 **RECEIPT**  
 Return attributable structured evidence of what was attempted and what the external world reports happened.
@@ -270,7 +287,9 @@ PRESS != scope expansion
 REPAIR != redesign
 READY != ADMIT
 ADMIT != LAND
+ADMIT != PUBLISH
 LAND request != observed landed state
+PUBLISH request != observed published state
 RECEIPT != authority
 provider success != semantic truth
 ```
@@ -599,11 +618,13 @@ ORIENT documentation world
   ↓
 CUT target publication surface
   ↓
-MUTATE proposal/change-request surface
+PROPOSE change-request / publication candidate
+  ↓
+MUTATE proposal surface
   ↓
 VERIFY rendered/content contract
   ↓
-READY change request
+READY proposal
   ↓
 ADMIT publication
   ↓
@@ -630,7 +651,7 @@ EffectIntent
   parameters_digest
   precondition_state
   workflow_receipt_refs
-  owner_gate_ref? 
+  owner_gate_ref?
 ```
 
 LOADOUT evaluates the intent against the compiled developer world.
@@ -673,16 +694,21 @@ A developer adapter body may carry:
 ```text
 adapter_id
 body_time_id
+body_digest
 status
 semantic_capabilities
 source repo
-exact source SHA when non-present/historical
+exact source SHA when repo-backed
 runtime contract
 entrypoint
 verification metadata
 authority: none
 parents
 ```
+
+Every **effectful adapter invocation** must bind to an immutable adapter body identity in its receipt.
+
+For a repository-backed body, this means an exact source commit SHA plus the runtime contract/version needed to identify what executed. For a non-repository body, the runtime must provide an equivalently immutable canonical artifact digest and contract version. A floating label such as `current` or `latest` is not sufficient attribution for an effect receipt.
 
 The adapter body itself carries no external authority.
 
@@ -692,6 +718,7 @@ Credentials/session grants are local runtime material and remain distinct from t
 BODY != CREDENTIAL
 BODY != AUTHORITY
 BODY CAPABILITY DECLARATION != CURRENT PERMISSION
+IMMUTABLE BODY IDENTITY != LATEST BODY LOOKUP
 ```
 
 Replay of a historical body must resolve exact body time rather than an implicit newest implementation.
@@ -728,7 +755,7 @@ Records at least:
 
 Records at least:
 
-- adapter body identity;
+- immutable adapter body identity/digest;
 - semantic capability;
 - provider operation used;
 - target;
@@ -798,6 +825,7 @@ EFFECT_OUTSIDE_FENCE
 TARGET_OUTSIDE_CUT
 BODY_AMBIGUOUS
 BODY_NOT_ELIGIBLE
+BODY_IDENTITY_NOT_IMMUTABLE
 STATE_STALE
 WITNESS_REQUIRED
 VERIFICATION_STALE
@@ -879,7 +907,7 @@ A `math.inspect` binding must not authorize evaluator behavior.
 
 ### `BODY-PIN-001`
 
-Historical/replay adapter execution requires an exact attributable body rather than implicit latest-body resolution.
+Every effectful adapter receipt requires immutable body attribution; historical/replay adapter execution additionally requires exact attributable body time rather than implicit latest-body resolution.
 
 ### `RESULT-LAUNDER-001`
 
@@ -897,9 +925,10 @@ The first implementation should remain smaller than the full destination archite
 
 1. A provider-independent developer compile model in LOADOUT.
 2. Typed capability/effect/fence representation sufficient for hostile tests.
-3. A pure workflow state machine for a minimal subset of verbs:
+3. A pure workflow state machine for a minimal subset of primitive verbs:
    - `CUT`
    - `CONTRACT`
+   - `CLASSIFY`
    - `BIND`
    - `FENCE`
    - `WITNESS`
@@ -908,6 +937,7 @@ The first implementation should remain smaller than the full destination archite
    - `READY`
    - `ADMIT`
    - `LAND`
+   - `PUBLISH`
    - `RECEIPT`
    - `REFUSE`
 4. Inert EffectIntent / EffectReceipt types.
@@ -975,7 +1005,7 @@ Hard law:
 5. Head/state drift invalidates state-bound landing authority.
 6. Review pressure cannot silently expand scope.
 7. Provider success remains distinct from semantic authority.
-8. Adapter bodies are attributable and replay cannot silently resolve newest-body state.
+8. Every effectful adapter receipt has immutable body attribution, and replay cannot silently resolve newest-body state.
 9. All Section 15 hostile fixtures have deterministic expected dispositions.
 10. No live provider credentials are required for the conformance suite.
 
