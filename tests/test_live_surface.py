@@ -25,10 +25,13 @@ def valid_manifest():
 
 
 def evidence(*, sha="0123456789abcdef0123456789abcdef01234567"):
+    manifest = valid_manifest()
     return {
+        "owner": manifest["owner"],
         "resolved_ref": "main",
         "resolved_sha": sha,
         "files": {
+            ".live/current-organ.json": json.dumps(manifest, sort_keys=True),
             "skills/loadout/SKILL.md": "skill",
             "docs/extra.md": "extra",
             "docs/unrequested.md": "do not load",
@@ -67,6 +70,40 @@ def test_resolver_pins_exact_sha_and_loads_entrypoint_only_by_default():
     assert result["receipt"]["resolved_sha"] == evidence()["resolved_sha"]
     assert result["receipt"]["loaded"] == ["skills/loadout/SKILL.md"]
     assert result["documents"] == {"skills/loadout/SKILL.md": "skill"}
+
+
+def test_resolver_refuses_owner_mismatch_in_host_evidence():
+    live = evidence()
+    live["owner"] = "someone-else/FOREIGN"
+    result = resolve_current_organ(valid_manifest(), live)
+    assert result["status"] == "REFUSE"
+    assert result["reasons"] == [
+        "repository evidence owner does not match manifest owner"
+    ]
+
+
+def test_resolver_refuses_manifest_not_bound_to_resolved_sha_evidence():
+    live = evidence()
+    foreign_manifest = valid_manifest()
+    foreign_manifest["organ"] = "not-loadout"
+    live["files"][".live/current-organ.json"] = json.dumps(
+        foreign_manifest, sort_keys=True
+    )
+    result = resolve_current_organ(valid_manifest(), live)
+    assert result["status"] == "REFUSE"
+    assert result["reasons"] == [
+        "manifest does not match resolved SHA evidence"
+    ]
+
+
+def test_missing_pinned_manifest_evidence_is_unresolved():
+    live = evidence()
+    del live["files"][".live/current-organ.json"]
+    result = resolve_current_organ(valid_manifest(), live)
+    assert result["status"] == "UNRESOLVED"
+    assert result["reasons"] == [
+        "manifest unavailable at resolved SHA: .live/current-organ.json"
+    ]
 
 
 def test_requested_path_outside_allowed_roots_is_refused():
