@@ -120,7 +120,7 @@ receipt != authority
 
 The first owner manifest lives at `.live/current-organ.json`. It points to the portable LOADOUT entrypoint at `skills/loadout/SKILL.md` and declares the repository roots eligible for bounded loading.
 
-The production resolver in `loadout.live_surface` performs **no network access**. A host supplies already-attributed evidence containing a resolved ref, an exact 40-hex commit SHA, and the file bodies available at that SHA. LOADOUT validates the manifest, freezes the SHA for the occurrence, selects only the entrypoint plus explicitly requested allowed paths, and emits a receipt.
+The production resolver in `loadout.live_surface` performs **no network access**. A host supplies already-attributed evidence containing the repository owner, a resolved ref, an exact 40-hex commit SHA, the pinned `.live/current-organ.json`, and the file bodies available at that SHA. LOADOUT verifies that the evidence owner matches the manifest owner and that the manifest body is the one present at the pinned SHA before it loads the entrypoint or any requested references. It then selects only allowed, explicitly needed paths and emits a receipt.
 
 A local host adapter can exercise the same contract with JSON files:
 
