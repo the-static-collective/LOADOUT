@@ -1,0 +1,81 @@
+{
+  "schema": "loadout.manifest/v0",
+  "compile_id": "3rdi-hatch-2026-08-27-b",
+  "parent_compile_id": "3rdi-hatch-2026-08-27-a",
+  "mode": "auto",
+  "profile": "build",
+  "lifecycle": {
+    "phase": "hatch",
+    "status": "active",
+    "decay_on": ["owner-ground-change", "repository-contract-change", "head-change", "contradictory-evidence"],
+    "inherits_permissions": false
+  },
+  "durability": "session",
+  "authority": "none",
+  "promotion": "none",
+  "receipt_to": "owner-world",
+  "request": {
+    "summary": "Create a repo-backed 3rdi skill and executable phase-0 projection floor.",
+    "desired_result": "A validated feature branch and pull request against the-static-collective/3rdi.",
+    "owner_world": "the-static-collective/3rdi",
+    "authorized_effects": ["read", "compute", "local-write", "external-write", "publish"],
+    "stop_condition": "The feature branch is pushed, a hatch PR is open, checks are observed, and the owner merge gate remains pending."
+  },
+  "task_world_cut": {
+    "required": true,
+    "status": "sufficient",
+    "sources": [
+      {"id": "S1", "evidence_class": "owner-ground", "locator": "conversation:owner-pastethoughts@2026-08-27", "resolution": "current-owner-message"},
+      {"id": "S2", "evidence_class": "project-witness", "locator": "repo:The-Daily-Slice@864a5683cf13b932336c5c5d21c20226d98acb8d", "resolution": "exact-head-and-files"},
+      {"id": "S3", "evidence_class": "orientation-witness", "locator": "gitbook:Free-Graph-Front-Room@2026-08-27-cut", "resolution": "task-relevant-pages"},
+      {"id": "S4", "evidence_class": "repository-boundary", "locator": "repo:the-static-collective/3rdi@empty-start", "resolution": "repository-metadata-and-clone"}
+    ],
+    "owner_heads": ["The-Daily-Slice@864a5683cf13b932336c5c5d21c20226d98acb8d", "3rdi-local-bootstrap@d2ba673"],
+    "omitted_doors": ["unrelated Static Collective repositories", "provider persistence stores", "communications adapters", "production deployment"],
+    "residual_fog": ["The remote repository has no base branch until the bootstrap owner gate is approved."]
+  },
+  "requirements": [
+    {"id": "R1", "capability": "revisioned-source-read", "required": true, "evidence_class": "source-evidence", "effect_class": "read", "witness": "source", "stop_condition": "Current owner ground and task-relevant project witnesses are attributable."},
+    {"id": "R2", "capability": "portable-skill-packaging", "required": true, "evidence_class": "skill-artifact", "effect_class": "local-write", "witness": "machine", "stop_condition": "Skill Creator validates skills/3rdi."},
+    {"id": "R3", "capability": "deterministic-projection-compilation", "required": true, "evidence_class": "runtime-receipt", "effect_class": "compute", "witness": "machine", "stop_condition": "The canonical cuts and five hostile labs execute deterministically."},
+    {"id": "R4", "capability": "adversarial-verification", "required": true, "evidence_class": "test-and-review-receipt", "effect_class": "compute", "witness": "machine", "stop_condition": "Full tests, lab harness, validator, compile check, and diff check pass."}
+  ],
+  "adapters": [],
+  "omitted_candidates": [],
+  "execution": [],
+  "pressure": {
+    "method": "MADDCL0WN plus named 3rdi hostile labs",
+    "status": "passed",
+    "counterpressure": [
+      "Later relevance may be mistaken for earlier causation.",
+      "Edge perception may be accidentally globalized across observers.",
+      "A reconstruction may leak actual future occurrences into a historical cut.",
+      "A coordinate decoder receipt may be mistaken for an executed transform.",
+      "A clean projection may be mistaken for authority."
+    ]
+  },
+  "local_gate": {"required": true, "owner": "the-static-collective/3rdi owner", "status": "pending", "receipt": null},
+  "compile_status": "partial",
+  "unfilled_requirements": [],
+  "residual_fog": [
+    "Remote main bootstrap requires explicit approval before the feature branch can target a PR base.",
+    "The owner merge gate remains pending.",
+    "Production persistence, authorization, numerical CRS transformation, telemetry, and UI remain out of scope."
+  ],
+  "receipt": {
+    "completed": false,
+    "outcome": "partial",
+    "evidence": [
+      "skills/3rdi passed Skill Creator validation",
+      "unit and contract tests passed",
+      "five named hatch labs passed",
+      "remote main bootstrap was not pushed without explicit approval"
+    ]
+  },
+  "source": {
+    "repository": "the-static-collective/3rdi",
+    "path": "receipts/loadout.manifest.json",
+    "blob_sha": "f1e12ce7969c123cce83b9fbbec31f4611f452df",
+    "note": "Constitutional golden cut; nonessential adapter/execution detail is intentionally omitted and declared by this fixture rather than rewritten as current schema."
+  }
+}

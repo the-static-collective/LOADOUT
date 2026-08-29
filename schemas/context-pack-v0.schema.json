@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://the-static-collective.invalid/loadout/context-pack-v0.schema.json",
+  "title": "loadout.context-pack/v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "load_bearing", "working_set", "cold_refs", "omitted_doors", "compression_receipts", "budget", "freshness", "residual_fog"],
+  "properties": {
+    "schema": {"const": "loadout.context-pack/v0"},
+    "load_bearing": {"type": "array"},
+    "working_set": {"type": "array"},
+    "cold_refs": {"type": "array"},
+    "omitted_doors": {"type": "array"},
+    "compression_receipts": {"type": "array"},
+    "budget": {"type": "object"},
+    "freshness": {"type": "string", "minLength": 1},
+    "residual_fog": {"type": "array"}
+  }
+}

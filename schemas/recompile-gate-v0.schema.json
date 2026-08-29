@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://the-static-collective.invalid/loadout/recompile-gate-v0.schema.json",
+  "title": "loadout.recompile-gate/v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "proposal_id", "proposal_digest", "base_compile_digest", "disposition", "reason_code", "gate_digest"],
+  "properties": {
+    "schema": {"const": "loadout.recompile-gate/v0"},
+    "proposal_id": {"type": ["string", "null"]},
+    "proposal_digest": {"type": ["string", "null"]},
+    "base_compile_digest": {"type": ["string", "null"]},
+    "disposition": {"enum": ["ADMIT", "REFUSE"]},
+    "reason_code": {"type": ["string", "null"]},
+    "gate_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://the-static-collective.invalid/loadout/recompile-proposal-v0.schema.json",
+  "title": "loadout.recompile-proposal/v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "proposal_id", "base_compile_id", "base_compile_digest", "proposed_compile_id", "reason", "patch", "proposal_digest"],
+  "properties": {
+    "schema": {"const": "loadout.recompile-proposal/v0"},
+    "proposal_id": {"type": "string", "minLength": 1},
+    "base_compile_id": {"type": "string", "minLength": 1},
+    "base_compile_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "proposed_compile_id": {"type": "string", "minLength": 1},
+    "reason": {"type": "string", "minLength": 1},
+    "patch": {"type": "object"},
+    "proposal_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}
