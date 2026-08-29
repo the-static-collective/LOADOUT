@@ -61,6 +61,14 @@ def _allowed_effects(record: dict) -> set[str]:
     }
 
 
+def _allowed_effect_entries(record: dict) -> dict[str, dict]:
+    return {
+        item.get("effect"): item
+        for item in record.get("effective_effects", [])
+        if isinstance(item, dict) and item.get("status") == "allowed"
+    }
+
+
 def _available_capabilities(record: dict) -> set[str]:
     return {
         item.get("capability")
@@ -93,6 +101,11 @@ def gate_recompile_proposal(base_compile: dict, proposal: dict) -> dict:
         candidate.update(copy.deepcopy(patch))
         if not _allowed_effects(candidate).issubset(_allowed_effects(base_compile)):
             disposition, reason_code = "REFUSE", "AUTHORITY_EXPANSION_FORBIDDEN"
+        elif any(
+            entry != _allowed_effect_entries(base_compile).get(effect)
+            for effect, entry in _allowed_effect_entries(candidate).items()
+        ):
+            disposition, reason_code = "REFUSE", "AUTHORIZATION_PROVENANCE_CHANGE_FORBIDDEN"
         elif not _available_capabilities(candidate).issubset(_available_capabilities(base_compile)):
             disposition, reason_code = "REFUSE", "CAPABILITY_EXPANSION_FORBIDDEN"
 

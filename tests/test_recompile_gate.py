@@ -145,3 +145,56 @@ def test_meta_gate_cannot_change_egress_policy_reference():
     gate = gate_recompile_proposal(base, proposal)
     assert gate["disposition"] == "REFUSE"
     assert gate["reason_code"] == "EGRESS_CHANGE_REQUIRES_OWNER_GATE"
+
+
+def test_meta_gate_cannot_rewrite_existing_effect_authorization_provenance():
+    base = compile_loadout({
+        "compile_id": "compile-effect-base",
+        "parent_compile_id": None,
+        "issued_at": "2026-08-29T03:00:00+00:00",
+        "expires_at": "2026-08-29T04:00:00+00:00",
+        "world_cut_ref": "world:1",
+        "context_pack_ref": "context:1",
+        "compile_trace": {
+            "id": "trace:effect",
+            "source_world_ref": "world:0",
+            "operation": "bounded-compile",
+            "preserved_invariants": [],
+            "declared_loss": [],
+            "producer": "loadout.kernel/v0",
+            "freshness": "2026-08-29T03:00:00+00:00",
+        },
+        "capabilities": [
+            {
+                "capability": "repo.write",
+                "operation": "intervene",
+                "reachable_effects": ["repo.branch.write"],
+                "parameters": {},
+            }
+        ],
+        "effect_fence": ["repo.branch.write"],
+        "effect_fence_ref": "fence:1",
+        "effect_authorizations": {
+            "repo.branch.write": {
+                "authorization_source_ref": "owner-receipt:real",
+                "owner_gate_ref": "owner-gate:real",
+                "scope": "repo.branch.write",
+                "valid_from": "2026-08-29T03:00:00+00:00",
+                "expires_at": "2026-08-29T04:00:00+00:00",
+                "revocation_ref": None,
+            }
+        },
+        "owner_evidence_digest": "sha256:" + "a" * 64,
+        "egress_policy_ref": "egress:1",
+    })
+    rewritten = [dict(base["effective_effects"][0], authorization_source_ref="owner-receipt:invented")]
+    proposal = propose_recompile(
+        base,
+        {"effective_effects": rewritten},
+        reason="rewrite-provenance",
+        proposal_id="proposal-provenance",
+        proposed_compile_id="compile-provenance",
+    )
+    gate = gate_recompile_proposal(base, proposal)
+    assert gate["disposition"] == "REFUSE"
+    assert gate["reason_code"] == "AUTHORIZATION_PROVENANCE_CHANGE_FORBIDDEN"
