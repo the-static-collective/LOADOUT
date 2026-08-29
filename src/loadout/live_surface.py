@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 import re
 
 MANIFEST_SCHEMA = "static-collective/current-organ/v0"
 RECEIPT_SCHEMA = "static-collective/live-surface-receipt/v0"
+MANIFEST_PATH = ".live/current-organ.json"
 
 _ALLOWED_MANIFEST_FIELDS = {
     "schema",
@@ -126,7 +128,7 @@ def unresolved_current_organ(
         "owner": manifest.get("owner") if isinstance(manifest, dict) else None,
         "resolved_ref": None,
         "resolved_sha": None,
-        "manifest_path": ".live/current-organ.json",
+        "manifest_path": MANIFEST_PATH,
         "entrypoint": entrypoint,
         "loaded": loaded,
         "freshness": "UNRESOLVED",
@@ -160,6 +162,14 @@ def resolve_current_organ(
     if not isinstance(evidence, dict):
         return _refuse("repository evidence must be an object")
 
+    evidence_owner = evidence.get("owner")
+    if evidence_owner is None:
+        return unresolved_current_organ(manifest, reason="repository evidence owner unavailable")
+    if not isinstance(evidence_owner, str) or not evidence_owner:
+        return _refuse("repository evidence owner must be a non-empty string")
+    if evidence_owner != manifest["owner"]:
+        return _refuse("repository evidence owner does not match manifest owner")
+
     resolved_ref = evidence.get("resolved_ref")
     if not isinstance(resolved_ref, str) or not resolved_ref:
         return _refuse("resolved_ref must be a non-empty string")
@@ -173,6 +183,20 @@ def resolve_current_organ(
         return unresolved_current_organ(manifest, reason="repository files unavailable")
     if not isinstance(files, dict):
         return _refuse("files must be an object")
+
+    if MANIFEST_PATH not in files:
+        return unresolved_current_organ(
+            manifest, reason=f"manifest unavailable at resolved SHA: {MANIFEST_PATH}"
+        )
+    pinned_manifest_text = files[MANIFEST_PATH]
+    if not isinstance(pinned_manifest_text, str):
+        return _refuse("manifest content at resolved SHA must be text")
+    try:
+        pinned_manifest = json.loads(pinned_manifest_text)
+    except json.JSONDecodeError:
+        return _refuse("manifest content at resolved SHA is not valid JSON")
+    if pinned_manifest != manifest:
+        return _refuse("manifest does not match resolved SHA evidence")
 
     load_paths = [manifest["entrypoint"]]
     for requested in requested_paths or []:
@@ -201,7 +225,7 @@ def resolve_current_organ(
         "owner": manifest["owner"],
         "resolved_ref": resolved_ref,
         "resolved_sha": resolved_sha,
-        "manifest_path": ".live/current-organ.json",
+        "manifest_path": MANIFEST_PATH,
         "entrypoint": manifest["entrypoint"],
         "loaded": list(load_paths),
         "freshness": "RESOLVED",
