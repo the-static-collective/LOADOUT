@@ -26,6 +26,7 @@ _REQUIRED_MANIFEST_FIELDS = (
     "fallback",
 )
 _OWNER_RE = re.compile(r"^[^/\s]+/[^/\s]+$")
+_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
 def normalize_repo_path(path: str) -> str:
@@ -96,3 +97,80 @@ def validate_current_organ_manifest(manifest: dict) -> list[str]:
         errors.append("unsupported fallback policy")
 
     return errors
+
+
+def _path_is_allowed(path: str, roots: list[str]) -> bool:
+    return any(path == root or path.startswith(f"{root}/") for root in roots)
+
+
+def _refuse(reason: str) -> dict:
+    return {"status": "REFUSE", "reasons": [reason], "documents": {}, "receipt": None}
+
+
+def resolve_current_organ(
+    manifest: dict,
+    evidence: dict,
+    *,
+    requested_paths: list[str] | None = None,
+) -> dict:
+    manifest_errors = validate_current_organ_manifest(manifest)
+    if manifest_errors:
+        return {
+            "status": "REFUSE",
+            "reasons": manifest_errors,
+            "documents": {},
+            "receipt": None,
+        }
+
+    if not isinstance(evidence, dict):
+        return _refuse("repository evidence must be an object")
+
+    resolved_ref = evidence.get("resolved_ref")
+    if not isinstance(resolved_ref, str) or not resolved_ref:
+        return _refuse("resolved_ref must be a non-empty string")
+
+    resolved_sha = evidence.get("resolved_sha")
+    if not isinstance(resolved_sha, str) or _SHA_RE.fullmatch(resolved_sha) is None:
+        return _refuse("resolved_sha must be a lowercase 40-hex commit SHA")
+
+    files = evidence.get("files")
+    if not isinstance(files, dict):
+        return _refuse("files must be an object")
+
+    load_paths = [manifest["entrypoint"]]
+    for requested in requested_paths or []:
+        try:
+            path = normalize_repo_path(requested)
+        except ValueError:
+            return _refuse(f"unsafe requested path: {requested}")
+        if path not in load_paths:
+            load_paths.append(path)
+
+    roots = [normalize_repo_path(root) for root in manifest["allowed_roots"]]
+    for path in load_paths:
+        if not _path_is_allowed(path, roots):
+            return _refuse(f"path outside allowed roots: {path}")
+        if path not in files:
+            return _refuse(f"missing file at resolved SHA: {path}")
+        if not isinstance(files[path], str):
+            return _refuse(f"file content must be text: {path}")
+
+    documents = {path: files[path] for path in load_paths}
+    receipt = {
+        "schema": RECEIPT_SCHEMA,
+        "organ": manifest["organ"],
+        "owner": manifest["owner"],
+        "resolved_ref": resolved_ref,
+        "resolved_sha": resolved_sha,
+        "manifest_path": ".live/current-organ.json",
+        "entrypoint": manifest["entrypoint"],
+        "loaded": list(load_paths),
+        "freshness": "RESOLVED",
+        "fallback_used": False,
+    }
+    return {
+        "status": "RESOLVED",
+        "reasons": [],
+        "documents": documents,
+        "receipt": receipt,
+    }
