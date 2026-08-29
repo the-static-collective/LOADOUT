@@ -10,6 +10,7 @@ from loadout.bind import evaluate_binding
 from loadout.compile import compile_loadout
 from loadout.decay import decay_reasons
 from loadout.delta import record_delta
+from loadout.live_surface import resolve_current_organ
 from loadout.pressure.ablate import ablate_binding, task_reachable
 from loadout.trace import trace_binding
 
@@ -57,6 +58,14 @@ def _parser() -> argparse.ArgumentParser:
     decay.add_argument("observed_at")
     decay.add_argument("--signal", action="append", default=[])
 
+    resolve_live = commands.add_parser(
+        "resolve-live",
+        help="Resolve host-supplied current-organ evidence at one exact commit SHA",
+    )
+    resolve_live.add_argument("manifest")
+    resolve_live.add_argument("evidence")
+    resolve_live.add_argument("--path", action="append", default=[])
+
     return parser
 
 
@@ -80,6 +89,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.command == "decay":
         signals = {signal: True for signal in args.signal}
         _emit(decay_reasons(_read(args.compile), args.observed_at, signals))
+    elif args.command == "resolve-live":
+        result = resolve_current_organ(
+            _read(args.manifest),
+            _read(args.evidence),
+            requested_paths=args.path,
+        )
+        _emit(result)
+        return 0 if result["status"] == "RESOLVED" else 2
     else:
         raise AssertionError(f"unhandled command: {args.command}")
     return 0
