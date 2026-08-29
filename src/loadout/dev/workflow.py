@@ -42,6 +42,8 @@ DEV_DOCS = WorkflowPolicy("dev.docs@0", require_proposal_before_publish=True)
 
 
 def start_workflow(policy, *, current_state_id, scope, design_admission_ref=None):
+    if design_admission_ref is not None and not design_admission_ref.strip():
+        design_admission_ref = None
     return WorkflowState(policy, current_state_id, scope, design_admission_ref)
 
 

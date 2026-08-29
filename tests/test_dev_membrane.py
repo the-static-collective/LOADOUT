@@ -82,3 +82,13 @@ def test_land_observe_001_queued_request_is_not_observed_merge():
     assert receipt.provider_disposition == "QUEUED"
     assert receipt.observed_post_state is None
     assert receipt.semantic_authority is False
+
+
+def test_land_requires_attributable_owner_gate_reference():
+    compiled = compiled_for("landing.request", EffectClass.LAND, "pr:2")
+    intent = EffectIntent("landing.request", EffectClass.LAND, "pr:2", BODY_ID, "H9", "merge")
+    blank = OwnerGate("pr:2", EffectClass.LAND, "H9", "   ")
+    adapter = FakeAdapter(BODY_ID, {"landing.request": ("MERGED", "merged:H9")})
+    receipt = invoke_effect(compiled, intent, {BODY_ID: adapter}, current_state="H9", owner_gate=blank)
+    assert receipt.reason == RefusalReason.OWNER_GATE_REQUIRED
+    assert adapter.invocations == []

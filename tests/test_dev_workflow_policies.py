@@ -46,3 +46,15 @@ def test_doc_publish_001_publish_requires_prior_proposal():
     state = accept(state, WorkflowEvent(Verb.READY, "D0", scope="docs:front-room"))
     state = accept(state, WorkflowEvent(Verb.ADMIT, "D0", scope="docs:front-room"))
     assert transition(state, WorkflowEvent(Verb.LAND, "D0", scope="docs:front-room", effect=EffectClass.PUBLISH)).reason is None
+
+
+def test_design_gate_rejects_blank_admission_reference():
+    state = start_workflow(
+        DEV_IMPLEMENT,
+        current_state_id="W0",
+        scope="repo:LOADOUT",
+        design_admission_ref="   ",
+    )
+    state = accept(state, WorkflowEvent(Verb.WITNESS, "W0", evidence=EvidenceKind.TEST_RED, scope="repo:LOADOUT"))
+    result = transition(state, WorkflowEvent(Verb.MUTATE, "W1", scope="repo:LOADOUT", effect=EffectClass.LOCAL_MUTATE))
+    assert result.reason == RefusalReason.DESIGN_GATE_REQUIRED

@@ -39,7 +39,7 @@ def invoke_effect(
         return _refuse(intent, RefusalReason.STATE_STALE)
 
     if intent.effect in _OWNER_GATED:
-        if owner_gate is None:
+        if owner_gate is None or not owner_gate.approval_ref.strip():
             return _refuse(intent, RefusalReason.OWNER_GATE_REQUIRED)
         if (owner_gate.target, owner_gate.effect, owner_gate.state_id) != (intent.target, intent.effect, current_state):
             return _refuse(intent, RefusalReason.OWNER_GATE_STALE)
