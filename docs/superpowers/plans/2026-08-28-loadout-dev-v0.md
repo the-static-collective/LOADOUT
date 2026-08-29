@@ -1191,11 +1191,35 @@ Expected: failure because `loadout.dev` has not exported the runtime surface.
 
 - [ ] **Step 3: Export the exact v0 surface**
 
-Implement `loadout/dev/__init__.py` with imports from `model`, `compiler`, `adapters`, `membrane`, and `workflow`; set `__all__` to the exact names asserted above. Do not export internal helpers such as `_refuse` or `_OWNER_GATED`.
-
-Use this exact `__all__`:
+Replace `loadout/dev/__init__.py` with:
 
 ```python
+from loadout.dev.adapters import Adapter, FakeAdapter
+from loadout.dev.compiler import compile_world
+from loadout.dev.membrane import invoke_effect
+from loadout.dev.model import (
+    AdapterBody,
+    CapabilityRequest,
+    CapabilitySpec,
+    CompileReceipt,
+    CompileRequest,
+    EffectClass,
+    EffectIntent,
+    EffectReceipt,
+    OwnerGate,
+    RefusalReason,
+    WorkflowEvent,
+)
+from loadout.dev.workflow import (
+    DEV_DEBUG,
+    DEV_DOCS,
+    DEV_IMPLEMENT,
+    DEV_LAND,
+    DEV_REVIEW,
+    start_workflow,
+    transition,
+)
+
 __all__ = [
     "Adapter", "AdapterBody", "CapabilityRequest", "CapabilitySpec", "CompileReceipt", "CompileRequest",
     "DEV_DEBUG", "DEV_DOCS", "DEV_IMPLEMENT", "DEV_LAND", "DEV_REVIEW",
@@ -1203,6 +1227,8 @@ __all__ = [
     "WorkflowEvent", "compile_world", "invoke_effect", "start_workflow", "transition",
 ]
 ```
+
+Do not export internal helpers such as `_refuse` or `_OWNER_GATED`.
 
 - [ ] **Step 4: Run public API GREEN**
 
