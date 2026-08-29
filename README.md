@@ -21,6 +21,8 @@ DISCOVER
   ↓
 SELECT
   ↓
+REACH
+  ↓
 FENCE
   ↓
 BIND
@@ -44,7 +46,67 @@ read authority != write authority
 missing capability != missing task
 router choice != evidence
 representation capability != intervention capability
+receipt != authority
+reflection != mutation
 ```
+
+## Executable floor
+
+The first runtime is intentionally small and deterministic. Production code uses the Python standard library only.
+
+```text
+REACH   calculate declared reachable effects / required capability reachability
+DELTA   compare bounded records deterministically
+FENCE   identify reachable effects outside the exact fence
+BIND    BIND | REFUSE | UNRESOLVED
+TRACE   preserve why a decision was made
+ABLATE  remove one binding counterfactually without mutating the parent
+```
+
+Install for development and run:
+
+```bash
+python -m pip install -e ".[test]"
+pytest -q
+loadout --help
+```
+
+Machine-facing commands:
+
+```text
+loadout bind
+loadout compile
+loadout envelope-alex
+loadout delta
+loadout reach
+loadout ablate
+loadout trace
+loadout decay
+```
+
+`loadout.compile/v0` is owned here. The ALEX adapter lowers an immutable compile into `alex.run-envelope/v0`; sharing a protocol does not merge the two systems.
+
+For effectful capabilities, **a fence alone is not authorization**. The compiler requires an attributable authorization source and owner-gate reference for each allowed reachable effect and carries those references forward unchanged.
+
+### Dogram-shaped, not Dogram-dependent
+
+Dogram's metaoscillatory architecture informs the reflective hatch:
+
+```text
+COMPILE
+  ↓
+RECEIPT / REIFY
+  ↓
+PRESSURE
+  ↓
+RECOMPILE PROPOSAL
+  ↓
+GATE
+  ↓
+COMPILE'
+```
+
+The proposal is inert. It cannot become a compile without a matching admitted gate receipt, and the meta-gate refuses authority or capability expansion.
 
 ## Neighbor ownership
 
@@ -86,6 +148,10 @@ The first LOADOUT-specific hostile boundary is **`PROBE-BIND-001`**: a capabilit
 
 See `docs/specs/2026-08-28-probe-bind-open-berth.md` and `evals/PROBE-BIND-001.md`.
 
+## Historical witness compatibility
+
+Historical `loadout.manifest/v0` receipts remain witnesses rather than being rewritten into the current compile schema. `fixtures/3rdi/loadout.manifest.json` records the first golden constitutional cut and its source blob SHA.
+
 ## Status
 
-Early constitutional seed. No production daemon, registry, network authority, master ontology, or automatic plugin orchestration is claimed by this repository yet.
+**Executable v0 kernel candidate.** No production daemon, registry, network authority, master ontology, automatic plugin orchestration, or Dogram runtime dependency is claimed.
