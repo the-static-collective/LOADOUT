@@ -55,7 +55,7 @@ def test_normalize_repo_path_refuses_escape():
         normalize_repo_path("skills/loadout/../../secret")
 
 
-def test_manifest_rejects_unknown_top_level_fields():
+def test_live_surface_006_manifest_cannot_mint_write_authority():
     manifest = valid_manifest()
     manifest["write_authority"] = True
     assert validate_current_organ_manifest(manifest) == ["unknown field: write_authority"]
@@ -117,6 +117,23 @@ def test_live_surface_004_connector_unavailable_uses_labeled_fallback_only():
     assert result["receipt"]["freshness"] == "UNRESOLVED"
     assert result["receipt"]["fallback_used"] is True
     assert result["receipt"]["resolved_sha"] is None
+
+
+def test_live_surface_005_orientation_can_load_without_becoming_constitution():
+    live = evidence()
+    live["files"]["docs/orientation.md"] = "orientation says something newer-looking"
+    result = resolve_current_organ(
+        valid_manifest(), live, requested_paths=["docs/orientation.md"]
+    )
+    assert result["status"] == "RESOLVED"
+    assert result["receipt"]["entrypoint"] == "skills/loadout/SKILL.md"
+    assert result["receipt"]["loaded"] == [
+        "skills/loadout/SKILL.md",
+        "docs/orientation.md",
+    ]
+    assert "authority_owner" not in result["receipt"]
+    assert "adopted_from" not in result["receipt"]
+    assert "current_truth" not in result["receipt"]
 
 
 def test_missing_repository_evidence_is_unresolved_without_fallback():
