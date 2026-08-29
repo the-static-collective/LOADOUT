@@ -107,9 +107,42 @@ def _refuse(reason: str) -> dict:
     return {"status": "REFUSE", "reasons": [reason], "documents": {}, "receipt": None}
 
 
+def unresolved_current_organ(
+    manifest: dict,
+    *,
+    reason: str,
+    embedded_entrypoint: str | None = None,
+) -> dict:
+    entrypoint = manifest.get("entrypoint") if isinstance(manifest, dict) else None
+    documents = {}
+    loaded: list[str] = []
+    if embedded_entrypoint is not None and isinstance(entrypoint, str):
+        documents[entrypoint] = embedded_entrypoint
+        loaded.append(entrypoint)
+
+    receipt = {
+        "schema": RECEIPT_SCHEMA,
+        "organ": manifest.get("organ") if isinstance(manifest, dict) else None,
+        "owner": manifest.get("owner") if isinstance(manifest, dict) else None,
+        "resolved_ref": None,
+        "resolved_sha": None,
+        "manifest_path": ".live/current-organ.json",
+        "entrypoint": entrypoint,
+        "loaded": loaded,
+        "freshness": "UNRESOLVED",
+        "fallback_used": embedded_entrypoint is not None,
+    }
+    return {
+        "status": "UNRESOLVED",
+        "reasons": [reason],
+        "documents": documents,
+        "receipt": receipt,
+    }
+
+
 def resolve_current_organ(
     manifest: dict,
-    evidence: dict,
+    evidence: dict | None,
     *,
     requested_paths: list[str] | None = None,
 ) -> dict:
@@ -122,6 +155,8 @@ def resolve_current_organ(
             "receipt": None,
         }
 
+    if evidence is None:
+        return unresolved_current_organ(manifest, reason="repository evidence unavailable")
     if not isinstance(evidence, dict):
         return _refuse("repository evidence must be an object")
 
@@ -134,6 +169,8 @@ def resolve_current_organ(
         return _refuse("resolved_sha must be a lowercase 40-hex commit SHA")
 
     files = evidence.get("files")
+    if files is None:
+        return unresolved_current_organ(manifest, reason="repository files unavailable")
     if not isinstance(files, dict):
         return _refuse("files must be an object")
 
@@ -151,7 +188,9 @@ def resolve_current_organ(
         if not _path_is_allowed(path, roots):
             return _refuse(f"path outside allowed roots: {path}")
         if path not in files:
-            return _refuse(f"missing file at resolved SHA: {path}")
+            return unresolved_current_organ(
+                manifest, reason=f"missing file at resolved SHA: {path}"
+            )
         if not isinstance(files[path], str):
             return _refuse(f"file content must be text: {path}")
 
