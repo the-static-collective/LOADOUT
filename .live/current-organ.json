@@ -1,0 +1,15 @@
+{
+  "schema": "static-collective/current-organ/v0",
+  "organ": "loadout",
+  "owner": "the-static-collective/LOADOUT",
+  "entrypoint": "skills/loadout/SKILL.md",
+  "state": null,
+  "allowed_roots": [
+    "skills/loadout",
+    "docs",
+    "schemas",
+    "evals"
+  ],
+  "resolution": "default-branch-head-then-pin",
+  "fallback": "embedded-bootstrap"
+}

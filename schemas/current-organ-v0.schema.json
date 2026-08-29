@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://the-static-collective.github.io/loadout/schemas/current-organ-v0.schema.json",
+  "title": "Static Collective Current Organ v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "organ",
+    "owner",
+    "entrypoint",
+    "allowed_roots",
+    "resolution",
+    "fallback"
+  ],
+  "properties": {
+    "schema": {"const": "static-collective/current-organ/v0"},
+    "organ": {"type": "string", "minLength": 1},
+    "owner": {"type": "string", "pattern": "^[^/\\s]+/[^/\\s]+$"},
+    "entrypoint": {"type": "string", "minLength": 1},
+    "state": {"type": ["string", "null"]},
+    "allowed_roots": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "orientation": {"type": "object"},
+    "resolution": {"const": "default-branch-head-then-pin"},
+    "fallback": {"const": "embedded-bootstrap"}
+  }
+}
