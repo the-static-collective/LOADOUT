@@ -1377,3 +1377,10 @@ Expected: full suite green, compileall exit 0, clean worktree.
 - Keep credentials outside all body/receipt types.
 - Do not substitute live GitHub/GitBook/Wolfram calls for the fake adapter in this plan.
 - Do not claim completion from focused tests; only the final fresh full-suite and post-commit verification authorize a completion statement.
+
+## Execution Handoff
+
+Implementation is intentionally not admitted by this plan alone. After review, choose either:
+
+1. **Subagent-Driven (recommended)** — execute one task at a time with a fresh worker/review gate per task.
+2. **Inline Execution** — execute the same plan in-session with explicit checkpoints.
