@@ -1,0 +1,7 @@
+interface:
+  display_name: "LOADOUT"
+  short_description: "Compile the smallest bounded world for the task"
+  default_prompt: "Use $loadout to compile only the context and capabilities this task needs. Keep availability, relevance, binding, and authority separate; fence effects; resolve current project-owned state at an exact pinned SHA when freshness matters; and leave an attributable receipt."
+
+policy:
+  allow_implicit_invocation: true
