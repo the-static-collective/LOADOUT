@@ -82,11 +82,63 @@ loadout reach
 loadout ablate
 loadout trace
 loadout decay
+loadout resolve-live
 ```
 
 `loadout.compile/v0` is owned here. The ALEX adapter lowers an immutable compile into `alex.run-envelope/v0`; sharing a protocol does not merge the two systems.
 
 For effectful capabilities, **a fence alone is not authorization**. The compiler requires an attributable authorization source and owner-gate reference for each allowed reachable effect and carries those references forward unchanged.
+
+## LIVE-SURFACE / CURRENT-ORGAN v0
+
+The uploaded ChatGPT-facing surface is not the organ. It is a stable re-entry membrane that can resolve the current owner material when the host provides attributable repository evidence.
+
+```text
+uploaded surface != organ
+
+resolve owner head
+  -> pin exact SHA
+  -> load minimally
+  -> work
+  -> receipt
+```
+
+Core law:
+
+> **Live across occurrences; pinned within an occurrence.**
+
+LOADOUT owns the common resolution protocol, not neighboring organ semantics:
+
+```text
+common protocol != common owner
+fallback != current
+retrieval != adoption
+pointer != truth
+loaded != supported
+receipt != authority
+```
+
+The first owner manifest lives at `.live/current-organ.json`. It points to the portable LOADOUT entrypoint at `skills/loadout/SKILL.md` and declares the repository roots eligible for bounded loading.
+
+The production resolver in `loadout.live_surface` performs **no network access**. A host supplies already-attributed evidence containing a resolved ref, an exact 40-hex commit SHA, and the file bodies available at that SHA. LOADOUT validates the manifest, freezes the SHA for the occurrence, selects only the entrypoint plus explicitly requested allowed paths, and emits a receipt.
+
+A local host adapter can exercise the same contract with JSON files:
+
+```bash
+loadout resolve-live manifest.json evidence.json --path docs/needed.md
+```
+
+A successful result exits `0` with `freshness = RESOLVED`. An unresolved or refused result exits `2`. If live owner evidence cannot be obtained, an embedded bootstrap may be used only as an explicitly `UNRESOLVED` fallback; it must never be represented as current.
+
+Published contracts:
+
+- `schemas/current-organ-v0.schema.json`
+- `schemas/live-surface-receipt-v0.schema.json`
+
+Design and implementation plan:
+
+- `docs/superpowers/specs/2026-08-29-live-surface-current-organ-design.md`
+- `docs/superpowers/plans/2026-08-29-live-surface-v0-implementation.md`
 
 ### Dogram-shaped, not Dogram-dependent
 
