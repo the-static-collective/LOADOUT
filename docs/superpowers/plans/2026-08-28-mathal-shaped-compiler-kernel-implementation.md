@@ -98,11 +98,11 @@
 
 **Interfaces:**
 - Produces: `decay_reasons(compile_record: dict, observed_at: str, signals: dict | None = None) -> list[str]`
-- Produces: `propose_recompile(base_compile: dict, patch: dict, reason: str) -> dict`
+- Produces: `propose_recompile(base_compile: dict, patch: dict, *, reason: str, proposal_id: str, proposed_compile_id: str) -> dict`
 - Produces: `gate_recompile_proposal(base_compile: dict, proposal: dict) -> dict`
 - Produces: `apply_recompile_proposal(base_compile: dict, proposal: dict, gate_receipt: dict) -> dict`
 
-- [x] Write tests proving expired compile decay and gate bypass refusal.
+- [x] Write tests proving expired compile decay, gate bypass refusal, proposal-digest tamper refusal, authority/capability non-expansion, and authorization-provenance preservation.
 - [x] Run and verify RED.
 - [x] Implement minimal decay/proposal/gate/application behavior.
 - [x] Run and verify GREEN.
@@ -121,7 +121,7 @@
 - Test: `tests/test_cli.py`
 
 **Interfaces:**
-- Produces console command `loadout` with `bind`, `compile`, `envelope-alex`, `delta`, `reach`, `ablate`, and `decay` subcommands that read JSON files and emit JSON to stdout.
+- Produces console command `loadout` with `bind`, `compile`, `envelope-alex`, `delta`, `reach`, `ablate`, `trace`, and `decay` subcommands that read JSON files and emit JSON to stdout.
 
 - [x] Write CLI smoke tests before creating CLI production code.
 - [x] Run and verify RED.
@@ -129,10 +129,9 @@
 - [x] Add JSON schemas, CI workflow, and README executable-floor documentation.
 - [x] Run `python -m compileall -q src` and `pytest -q` with zero failures.
 
-
 ## Verification receipt
 
-- Local TDD suite: `23 passed`.
+- Local TDD suite: `24 passed`.
 - `python -m compileall -q src`: exit 0.
 - Editable package build/install: `python -m pip install -e . --no-deps --no-build-isolation`: exit 0 using installed setuptools 82.0.1.
 - Console entry point: `loadout --help` exposes `bind`, `compile`, `envelope-alex`, `delta`, `reach`, `ablate`, `trace`, and `decay`.
