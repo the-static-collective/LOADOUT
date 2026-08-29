@@ -1,0 +1,89 @@
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+from typing import Sequence
+
+from loadout.adapters.alex import to_alex_envelope
+from loadout.bind import evaluate_binding
+from loadout.compile import compile_loadout
+from loadout.decay import decay_reasons
+from loadout.delta import record_delta
+from loadout.pressure.ablate import ablate_binding, task_reachable
+from loadout.trace import trace_binding
+
+
+def _read(path: str):
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def _emit(value) -> None:
+    print(json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False))
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="loadout", description="Deterministic bounded-world compiler kernel")
+    commands = parser.add_subparsers(dest="command", required=True)
+
+    bind = commands.add_parser("bind", help="Evaluate one capability against an effect fence")
+    bind.add_argument("capability")
+    bind.add_argument("--fence", required=True)
+
+    compile_cmd = commands.add_parser("compile", help="Compile a bounded LOADOUT spec")
+    compile_cmd.add_argument("spec")
+
+    alex = commands.add_parser("envelope-alex", help="Lower a compile into alex.run-envelope/v0")
+    alex.add_argument("compile")
+    alex.add_argument("request")
+
+    delta = commands.add_parser("delta", help="Compare two bounded records")
+    delta.add_argument("left")
+    delta.add_argument("right")
+
+    reach = commands.add_parser("reach", help="Evaluate required capability reachability")
+    reach.add_argument("compile")
+
+    ablate = commands.add_parser("ablate", help="Remove one capability binding counterfactually")
+    ablate.add_argument("compile")
+    ablate.add_argument("capability")
+    ablate.add_argument("new_compile_id")
+
+    trace = commands.add_parser("trace", help="Render a binding decision trace")
+    trace.add_argument("receipt")
+
+    decay = commands.add_parser("decay", help="Evaluate compile decay reasons")
+    decay.add_argument("compile")
+    decay.add_argument("observed_at")
+    decay.add_argument("--signal", action="append", default=[])
+
+    return parser
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = _parser().parse_args(argv)
+
+    if args.command == "bind":
+        _emit(evaluate_binding(_read(args.capability), _read(args.fence)))
+    elif args.command == "compile":
+        _emit(compile_loadout(_read(args.spec)))
+    elif args.command == "envelope-alex":
+        _emit(to_alex_envelope(_read(args.compile), _read(args.request)))
+    elif args.command == "delta":
+        _emit(record_delta(_read(args.left), _read(args.right)))
+    elif args.command == "reach":
+        _emit(task_reachable(_read(args.compile)))
+    elif args.command == "ablate":
+        _emit(ablate_binding(_read(args.compile), args.capability, args.new_compile_id))
+    elif args.command == "trace":
+        _emit(trace_binding(_read(args.receipt)))
+    elif args.command == "decay":
+        signals = {signal: True for signal in args.signal}
+        _emit(decay_reasons(_read(args.compile), args.observed_at, signals))
+    else:
+        raise AssertionError(f"unhandled command: {args.command}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

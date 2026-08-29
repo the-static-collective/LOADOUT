@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://the-static-collective.invalid/loadout/compile-v0.schema.json",
+  "title": "loadout.compile/v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "compile_id",
+    "parent_compile_id",
+    "issued_at",
+    "expires_at",
+    "world_cut_ref",
+    "context_pack_ref",
+    "compile_trace",
+    "capability_bindings",
+    "effect_fence_ref",
+    "effective_effects",
+    "owner_evidence_digest",
+    "egress_policy_ref",
+    "compile_digest"
+  ],
+  "properties": {
+    "schema": {"const": "loadout.compile/v0"},
+    "compile_id": {"type": "string", "minLength": 1},
+    "parent_compile_id": {"type": ["string", "null"]},
+    "issued_at": {"type": "string", "minLength": 1},
+    "expires_at": {"type": "string", "minLength": 1},
+    "world_cut_ref": {"type": "string", "minLength": 1},
+    "context_pack_ref": {"type": "string", "minLength": 1},
+    "compile_trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source_world_ref", "operation", "preserved_invariants", "declared_loss", "producer", "freshness"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "source_world_ref": {"type": "string", "minLength": 1},
+        "operation": {"type": "string", "minLength": 1},
+        "preserved_invariants": {"type": "array", "items": {"type": "string"}},
+        "declared_loss": {"type": "array", "items": {"type": "string"}},
+        "producer": {"type": "string", "minLength": 1},
+        "freshness": {"type": "string", "minLength": 1}
+      }
+    },
+    "capability_bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capability", "status"],
+        "properties": {
+          "capability": {"type": "string", "minLength": 1},
+          "status": {"enum": ["available", "unavailable"]}
+        }
+      }
+    },
+    "effect_fence_ref": {"type": "string", "minLength": 1},
+    "effective_effects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["effect", "status", "authorization_source_ref", "scope", "valid_from", "expires_at", "revocation_ref", "owner_gate_ref"],
+        "properties": {
+          "effect": {"type": "string", "minLength": 1},
+          "status": {"enum": ["allowed", "refused", "unresolved"]},
+          "authorization_source_ref": {"type": ["string", "null"]},
+          "scope": {"type": "string", "minLength": 1},
+          "valid_from": {"type": ["string", "null"]},
+          "expires_at": {"type": ["string", "null"]},
+          "revocation_ref": {"type": ["string", "null"]},
+          "owner_gate_ref": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "owner_evidence_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "egress_policy_ref": {"type": "string", "minLength": 1},
+    "compile_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}
