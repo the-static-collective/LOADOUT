@@ -3,6 +3,7 @@ import pytest
 from loadout.live_surface import (
     normalize_repo_path,
     resolve_current_organ,
+    unresolved_current_organ,
     validate_current_organ_manifest,
 )
 
@@ -73,11 +74,53 @@ def test_requested_path_outside_allowed_roots_is_refused():
     assert result["reasons"] == ["path outside allowed roots: src/loadout/cli.py"]
 
 
+def test_live_surface_001_live_content_outranks_stale_embedded_snapshot():
+    live = evidence()
+    live["files"]["skills/loadout/SKILL.md"] = "current live skill"
+    fallback = unresolved_current_organ(
+        valid_manifest(), reason="connector unavailable", embedded_entrypoint="stale embedded skill"
+    )
+    resolved = resolve_current_organ(valid_manifest(), live)
+    assert fallback["documents"]["skills/loadout/SKILL.md"] == "stale embedded skill"
+    assert resolved["documents"]["skills/loadout/SKILL.md"] == "current live skill"
+    assert resolved["receipt"]["freshness"] == "RESOLVED"
+
+
 def test_live_surface_002_head_move_does_not_mutate_prior_receipt():
     first = resolve_current_organ(valid_manifest(), evidence(sha="a" * 40))
     second = resolve_current_organ(valid_manifest(), evidence(sha="b" * 40))
     assert first["receipt"]["resolved_sha"] == "a" * 40
     assert second["receipt"]["resolved_sha"] == "b" * 40
+
+
+def test_live_surface_003_missing_entrypoint_is_unresolved_and_not_guessed():
+    live = evidence()
+    del live["files"]["skills/loadout/SKILL.md"]
+    live["files"]["skills/loadout/README.md"] = "tempting sibling"
+    result = resolve_current_organ(valid_manifest(), live)
+    assert result["status"] == "UNRESOLVED"
+    assert result["documents"] == {}
+    assert result["receipt"]["freshness"] == "UNRESOLVED"
+    assert result["receipt"]["resolved_sha"] is None
+    assert result["reasons"] == ["missing file at resolved SHA: skills/loadout/SKILL.md"]
+
+
+def test_live_surface_004_connector_unavailable_uses_labeled_fallback_only():
+    result = unresolved_current_organ(
+        valid_manifest(), reason="connector unavailable", embedded_entrypoint="embedded floor"
+    )
+    assert result["status"] == "UNRESOLVED"
+    assert result["documents"] == {"skills/loadout/SKILL.md": "embedded floor"}
+    assert result["receipt"]["freshness"] == "UNRESOLVED"
+    assert result["receipt"]["fallback_used"] is True
+    assert result["receipt"]["resolved_sha"] is None
+
+
+def test_missing_repository_evidence_is_unresolved_without_fallback():
+    result = resolve_current_organ(valid_manifest(), None)
+    assert result["status"] == "UNRESOLVED"
+    assert result["documents"] == {}
+    assert result["receipt"]["fallback_used"] is False
 
 
 def test_live_surface_007_does_not_overfetch_unrequested_files():
