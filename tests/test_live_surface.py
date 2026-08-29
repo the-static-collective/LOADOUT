@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import pytest
 
 from loadout.live_surface import (
@@ -139,3 +142,12 @@ def test_live_surface_008_same_branch_name_is_not_replay_identity():
     second = resolve_current_organ(valid_manifest(), evidence(sha="2" * 40))
     assert first["receipt"]["resolved_ref"] == second["receipt"]["resolved_ref"] == "main"
     assert first["receipt"]["resolved_sha"] != second["receipt"]["resolved_sha"]
+
+
+def test_repository_manifest_points_to_existing_portable_skill():
+    manifest = json.loads(Path(".live/current-organ.json").read_text())
+    assert validate_current_organ_manifest(manifest) == []
+    assert Path(manifest["entrypoint"]).is_file()
+    text = Path(manifest["entrypoint"]).read_text()
+    assert "Live across occurrences; pinned within an occurrence." in text
+    assert "Knowledge may load. Capability may bind. Authority does not silently expand." in text
