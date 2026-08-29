@@ -43,10 +43,8 @@ def test_cli_trace_emits_operator_path(tmp_path, capsys):
     assert [step["step"] for step in output] == ["REACH", "FENCE", "BIND"]
 
 
-def test_cli_resolve_live_emits_pinned_receipt_and_bounded_documents(tmp_path, capsys):
-    manifest = tmp_path / "manifest.json"
-    evidence = tmp_path / "evidence.json"
-    manifest.write_text(json.dumps({
+def _live_manifest():
+    return {
         "schema": "static-collective/current-organ/v0",
         "organ": "loadout",
         "owner": "the-static-collective/LOADOUT",
@@ -55,11 +53,20 @@ def test_cli_resolve_live_emits_pinned_receipt_and_bounded_documents(tmp_path, c
         "allowed_roots": ["skills/loadout", "docs"],
         "resolution": "default-branch-head-then-pin",
         "fallback": "embedded-bootstrap",
-    }))
+    }
+
+
+def test_cli_resolve_live_emits_pinned_receipt_and_bounded_documents(tmp_path, capsys):
+    manifest = tmp_path / "manifest.json"
+    evidence = tmp_path / "evidence.json"
+    manifest_body = _live_manifest()
+    manifest.write_text(json.dumps(manifest_body))
     evidence.write_text(json.dumps({
+        "owner": manifest_body["owner"],
         "resolved_ref": "main",
         "resolved_sha": "0123456789abcdef0123456789abcdef01234567",
         "files": {
+            ".live/current-organ.json": json.dumps(manifest_body, sort_keys=True),
             "skills/loadout/SKILL.md": "skill",
             "docs/needed.md": "needed",
             "docs/unrequested.md": "do not load",
@@ -83,20 +90,16 @@ def test_cli_resolve_live_emits_pinned_receipt_and_bounded_documents(tmp_path, c
 def test_cli_resolve_live_returns_two_for_unresolved_evidence(tmp_path, capsys):
     manifest = tmp_path / "manifest.json"
     evidence = tmp_path / "evidence.json"
-    manifest.write_text(json.dumps({
-        "schema": "static-collective/current-organ/v0",
-        "organ": "loadout",
-        "owner": "the-static-collective/LOADOUT",
-        "entrypoint": "skills/loadout/SKILL.md",
-        "state": None,
-        "allowed_roots": ["skills/loadout"],
-        "resolution": "default-branch-head-then-pin",
-        "fallback": "embedded-bootstrap",
-    }))
+    manifest_body = _live_manifest()
+    manifest_body["allowed_roots"] = ["skills/loadout"]
+    manifest.write_text(json.dumps(manifest_body))
     evidence.write_text(json.dumps({
+        "owner": manifest_body["owner"],
         "resolved_ref": "main",
         "resolved_sha": "0123456789abcdef0123456789abcdef01234567",
-        "files": {},
+        "files": {
+            ".live/current-organ.json": json.dumps(manifest_body, sort_keys=True),
+        },
     }))
 
     assert main(["resolve-live", str(manifest), str(evidence)]) == 2
