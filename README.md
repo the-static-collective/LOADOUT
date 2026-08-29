@@ -88,4 +88,8 @@ See `docs/specs/2026-08-28-probe-bind-open-berth.md` and `evals/PROBE-BIND-001.m
 
 ## Status
 
-Early constitutional seed. No production daemon, registry, network authority, master ontology, or automatic plugin orchestration is claimed by this repository yet.
+`LOADOUT.dev/v0` has a deterministic executable conformance floor for provider-independent capability compilation, body-declared reachable effects, exact adapter-body attribution, effect fencing, state-bound workflow gates, inert effect intents/receipts, and fake-adapter hostile tests.
+
+It does **not** yet claim live provider orchestration, credential storage, merge/publication automation, background watching, full Dogram lowering, a production daemon, network authority, or a master ontology.
+
+See `docs/specs/2026-08-28-loadout-dev-native-developer-toolset.md`, `docs/superpowers/plans/2026-08-28-loadout-dev-v0.md`, and `evals/LOADOUT-DEV-v0.md`.
