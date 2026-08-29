@@ -35,6 +35,10 @@ class TransitionResult:
 
 
 DEV_LAND = WorkflowPolicy(name="dev.land@0")
+DEV_IMPLEMENT = WorkflowPolicy("dev.implement@0", require_design_admission_before_mutate=True, require_red_before_mutate=True)
+DEV_DEBUG = WorkflowPolicy("dev.debug@0", require_root_cause_before_repair=True)
+DEV_REVIEW = WorkflowPolicy("dev.review@0", lock_repair_scope=True)
+DEV_DOCS = WorkflowPolicy("dev.docs@0", require_proposal_before_publish=True)
 
 
 def start_workflow(policy, *, current_state_id, scope, design_admission_ref=None):
@@ -64,6 +68,36 @@ def transition(state: WorkflowState, event: WorkflowEvent) -> TransitionResult:
         if event.state_id != state.current_state_id or state.ready_state_id != event.state_id:
             return _refuse(state, RefusalReason.OWNER_GATE_STALE)
         return TransitionResult(replace(state, admitted_state_id=event.state_id, events=state.events + (event,)))
+    if event.verb == Verb.WITNESS:
+        next_state = replace(state, red_witnessed=True) if event.evidence == EvidenceKind.TEST_RED else state
+        return TransitionResult(replace(next_state, events=next_state.events + (event,)))
+    if event.verb == Verb.CONTRACT:
+        next_state = replace(state, root_cause_hypothesis=True) if event.evidence == EvidenceKind.ROOT_CAUSE_HYPOTHESIS else state
+        return TransitionResult(replace(next_state, events=next_state.events + (event,)))
+    if event.verb == Verb.PROBE:
+        next_state = replace(state, root_cause_probed=True) if event.evidence == EvidenceKind.ROOT_CAUSE_PROBE else state
+        return TransitionResult(replace(next_state, events=next_state.events + (event,)))
+
+    if event.verb == Verb.MUTATE:
+        if state.policy.require_design_admission_before_mutate and state.design_admission_ref is None:
+            return _refuse(state, RefusalReason.DESIGN_GATE_REQUIRED)
+        if state.policy.require_red_before_mutate and not state.red_witnessed:
+            return _refuse(state, RefusalReason.WITNESS_REQUIRED)
+
+    if event.verb == Verb.REPAIR:
+        if state.policy.lock_repair_scope and event.scope != state.scope:
+            return _refuse(state, RefusalReason.REVIEW_SCOPE_EXCEEDED)
+        if state.policy.require_root_cause_before_repair and not (state.root_cause_hypothesis and state.root_cause_probed):
+            return _refuse(state, RefusalReason.ROOT_CAUSE_REQUIRED)
+
+    if (
+        event.verb == Verb.LAND
+        and event.effect == EffectClass.PUBLISH
+        and state.policy.require_proposal_before_publish
+        and not state.proposal_seen
+    ):
+        return _refuse(state, RefusalReason.PROPOSAL_REQUIRED)
+
     if event.verb in {Verb.MUTATE, Verb.REPAIR}:
         return TransitionResult(replace(
             state,
