@@ -91,3 +91,49 @@ def evaluate_reconstitution_threshold(handoff: dict, request: dict) -> dict:
     }
     record["threshold_digest"] = sha256_json(record)
     return record
+
+
+def reconstitute_world(
+    handoff: dict,
+    threshold: dict,
+    compile_spec: dict,
+    *,
+    world_id: str,
+    occurred_at: str,
+    resolved_bodies: list[dict],
+) -> dict:
+    if threshold.get("disposition") not in LIFTABLE:
+        raise ValueError("threshold is not liftable")
+    if threshold.get("source_handoff_digest") != handoff.get("handoff_digest"):
+        raise ValueError("threshold source mismatch")
+
+    compile_record = compile_loadout(copy.deepcopy(compile_spec))
+    local_authorization_refs = sorted({
+        item["authorization_source_ref"]
+        for item in compile_record.get("effective_effects", [])
+        if item.get("status") == "allowed" and item.get("authorization_source_ref")
+    })
+    refused_bindings = sorted(
+        item["capability"]
+        for item in compile_record.get("capability_bindings", [])
+        if item.get("status") != "available"
+    )
+
+    receipt = {
+        "schema": "loadout.world-birth/v0",
+        "world_id": world_id,
+        "source_handoff_digest": handoff["handoff_digest"],
+        "threshold_digest": threshold["threshold_digest"],
+        "local_constitution_ref": threshold["receiving_constitution_ref"],
+        "compile_digest": compile_record["compile_digest"],
+        "historical_producer_refs": sorted(handoff.get("historical_producer_refs", [])),
+        "resolved_bodies": sorted(copy.deepcopy(resolved_bodies), key=lambda item: item["logical_ref"]),
+        "local_authorization_refs": local_authorization_refs,
+        "refused_bindings": refused_bindings,
+        "home_check": threshold["home_check"],
+        "protected_refs": copy.deepcopy(threshold["locally_protected_refs"]),
+        "local_proposal_refs": sorted(item["proposal_id"] for item in threshold["local_proposals"]),
+        "occurred_at": occurred_at,
+    }
+    receipt["birth_digest"] = sha256_json(receipt)
+    return {"compile": compile_record, "birth_receipt": receipt}
