@@ -1,9 +1,20 @@
 import json
+import subprocess
 from pathlib import Path
 
 from loadout.cli import main
 
 ROOT = Path(__file__).parents[1]
+
+
+def test_installed_cli_help_lists_reconstitute():
+    result = subprocess.run(
+        ["loadout", "--help"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "reconstitute" in result.stdout
 
 
 def test_cli_bind_emits_machine_readable_receipt(tmp_path, capsys):
