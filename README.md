@@ -82,11 +82,27 @@ loadout reach
 loadout ablate
 loadout trace
 loadout decay
+loadout reconstitute
 ```
 
 `loadout.compile/v0` is owned here. The ALEX adapter lowers an immutable compile into `alex.run-envelope/v0`; sharing a protocol does not merge the two systems.
 
 For effectful capabilities, **a fence alone is not authorization**. The compiler requires an attributable authorization source and owner-gate reference for each allowed reachable effect and carries those references forward unchanged.
+
+### PHASELIFT reconstitution boundary
+
+Project 0 crossing testimony may be received and inspected through the bounded Project 0 adapter. LOADOUT alone evaluates the receiver-local reconstitution threshold.
+
+```text
+source testimony
+  -> Project 0 crossing
+  -> LOADOUT local threshold
+  -> LIFT | DEGRADED | HOLD | REFUSE
+```
+
+Source authority never becomes local authorization by transport. `LIFT` and `DEGRADED` may emit a new `loadout.world-birth/v0` receipt after local compilation and authorization. `HOLD` and `REFUSE` do not constitute a world. Source proposals, when adopted, receive new LOADOUT-local proposal identities rather than becoming executable destination edges unchanged.
+
+This surface proves bounded crossing/reconstitution only. It does not claim a network protocol, daemon, universal PHASELIFT runtime, automatic merge plane, or portable `PROTECTED` ontology.
 
 ### Dogram-shaped, not Dogram-dependent
 
@@ -146,6 +162,8 @@ A successful Cup carries enough information to help another Cup constitute itsel
 
 The first LOADOUT-specific hostile boundary is **`PROBE-BIND-001`**: a capability that only changes representation may remain read-only, while the same nominal tool used to alter a target's future must cross an explicit effect fence.
 
+PHASELIFT `CROSSING-001 / RECONSTITUTE-001` additionally proves that one immutable Project 0 crossing may yield receiver-local `LIFT`, `DEGRADED`, `HOLD`, or `REFUSE`, and that lawful lifts may fork into distinct successor worlds without importing source authority or rewriting historical producers. See `evals/CROSSING-001.md`.
+
 See `docs/specs/2026-08-28-probe-bind-open-berth.md` and `evals/PROBE-BIND-001.md`.
 
 ## Historical witness compatibility
@@ -154,4 +172,4 @@ Historical `loadout.manifest/v0` receipts remain witnesses rather than being rew
 
 ## Status
 
-**Executable v0 kernel candidate.** No production daemon, registry, network authority, master ontology, automatic plugin orchestration, or Dogram runtime dependency is claimed.
+**Executable v0 kernel candidate.** No production daemon, registry, network authority, master ontology, automatic plugin orchestration, universal PHASELIFT runtime, or Dogram runtime dependency is claimed.

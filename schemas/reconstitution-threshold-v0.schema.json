@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema",
+    "threshold_id",
+    "source_handoff_digest",
+    "receiving_constitution_ref",
+    "home_check",
+    "disposition",
+    "threshold_digest"
+  ],
+  "properties": {
+    "schema": {"const": "loadout.reconstitution-threshold/v0"},
+    "home_check": {"enum": ["PASS", "DEGRADED", "REFUSE"]},
+    "disposition": {"enum": ["LIFT", "DEGRADED", "HOLD", "REFUSE"]},
+    "authority_decision": {"const": "REAUTHORIZE_LOCALLY"}
+  },
+  "additionalProperties": true
+}

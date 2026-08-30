@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema",
+    "world_id",
+    "source_handoff_digest",
+    "threshold_digest",
+    "local_constitution_ref",
+    "compile_digest",
+    "historical_producer_refs",
+    "resolved_bodies",
+    "local_authorization_refs",
+    "home_check",
+    "occurred_at",
+    "birth_digest"
+  ],
+  "properties": {
+    "schema": {"const": "loadout.world-birth/v0"},
+    "home_check": {"enum": ["PASS", "DEGRADED"]}
+  },
+  "additionalProperties": true
+}

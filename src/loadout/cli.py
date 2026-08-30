@@ -6,11 +6,13 @@ from pathlib import Path
 from typing import Sequence
 
 from loadout.adapters.alex import to_alex_envelope
+from loadout.adapters.project0 import parse_project0_handoff
 from loadout.bind import evaluate_binding
 from loadout.compile import compile_loadout
 from loadout.decay import decay_reasons
 from loadout.delta import record_delta
 from loadout.pressure.ablate import ablate_binding, task_reachable
+from loadout.reconstitution import evaluate_reconstitution_threshold, reconstitute_world
 from loadout.trace import trace_binding
 
 
@@ -57,6 +59,18 @@ def _parser() -> argparse.ArgumentParser:
     decay.add_argument("observed_at")
     decay.add_argument("--signal", action="append", default=[])
 
+    reconstitute = commands.add_parser(
+        "reconstitute",
+        help="Evaluate and locally constitute one PHASELIFT crossing",
+    )
+    reconstitute.add_argument("project0_fixture")
+    reconstitute.add_argument("project0_provenance")
+    reconstitute.add_argument("request")
+    reconstitute.add_argument("compile_spec")
+    reconstitute.add_argument("--world-id", required=True)
+    reconstitute.add_argument("--occurred-at", required=True)
+    reconstitute.add_argument("--resolved-bodies", required=True)
+
     return parser
 
 
@@ -80,6 +94,25 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.command == "decay":
         signals = {signal: True for signal in args.signal}
         _emit(decay_reasons(_read(args.compile), args.observed_at, signals))
+    elif args.command == "reconstitute":
+        handoff = parse_project0_handoff(
+            _read(args.project0_fixture),
+            _read(args.project0_provenance),
+        )
+        threshold = evaluate_reconstitution_threshold(handoff, _read(args.request))
+        output = {"threshold": threshold}
+        if threshold["disposition"] in {"LIFT", "DEGRADED"}:
+            output.update(
+                reconstitute_world(
+                    handoff,
+                    threshold,
+                    _read(args.compile_spec),
+                    world_id=args.world_id,
+                    occurred_at=args.occurred_at,
+                    resolved_bodies=_read(args.resolved_bodies),
+                )
+            )
+        _emit(output)
     else:
         raise AssertionError(f"unhandled command: {args.command}")
     return 0
