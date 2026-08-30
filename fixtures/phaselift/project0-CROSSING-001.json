@@ -1,0 +1,127 @@
+{
+  "schema": "phaselift.source-fixture/v0",
+  "envelope": {
+    "protocolVersion": "p0.exchange/0.1",
+    "originNodeRef": "project0-phaselift-source",
+    "originFrameRef": "world:A",
+    "originVersionRef": "fixture-version:A1",
+    "offered": {
+      "objectRef": "testimony:CROSSING-001",
+      "mediaType": "application/json",
+      "sourceReceiptRefs": ["receipt:dogram:A1", "receipt:alex:A1"],
+      "disclosureClass": "public"
+    },
+    "sourceProvenanceRefs": ["producer:dogram:A1", "producer:alex:A1"],
+    "sourceAuthorityRefs": ["authority:source-repo-write"],
+    "sourceEpistemicKind": "witness",
+    "sourceVerificationState": "verified",
+    "capabilityUsed": "offer_public_witness",
+    "limitations": [
+      "source-authority-not-portable",
+      "source-open-proposal-not-executable",
+      "fixture-only"
+    ]
+  },
+  "continuityClaim": {
+    "schema": "p0.continuity/0.1",
+    "purpose": "CROSSING-001 successor-world continuity",
+    "subjectRef": "task:CROSSING-001",
+    "ancestorRoots": ["receipt:dogram:A1", "receipt:alex:A1"],
+    "environment": {
+      "runtimeRef": "world:A",
+      "policyRefs": ["policy:source-local"],
+      "contextRefs": ["context:crossing-001"]
+    },
+    "lanes": [
+      {
+        "lane": "identity",
+        "mode": "preserved",
+        "dimensions": [
+          {
+            "dimension": "logical-task-address",
+            "evidenceRefs": ["task:CROSSING-001"]
+          }
+        ],
+        "transformationRefs": [],
+        "residualRefs": [],
+        "uncertainty": [],
+        "doesNotEstablish": ["authority"]
+      },
+      {
+        "lane": "protocol",
+        "mode": "transformed",
+        "dimensions": [
+          {
+            "dimension": "receiver-may-reconstitute-under-local-law",
+            "evidenceRefs": ["receipt:dogram:A1"]
+          }
+        ],
+        "transformationRefs": ["proposal:reconstitute"],
+        "residualRefs": [],
+        "uncertainty": [],
+        "doesNotEstablish": ["authority"]
+      },
+      {
+        "lane": "purpose-meaning",
+        "mode": "preserved",
+        "dimensions": [
+          {
+            "dimension": "bounded-purpose",
+            "evidenceRefs": ["task:CROSSING-001"]
+          }
+        ],
+        "transformationRefs": [],
+        "residualRefs": [],
+        "uncertainty": [],
+        "doesNotEstablish": ["authority"]
+      },
+      {
+        "lane": "authority",
+        "mode": "unresolved",
+        "dimensions": [
+          {
+            "dimension": "source-authority-is-historical-only",
+            "evidenceRefs": ["authority:source-repo-write"]
+          }
+        ],
+        "transformationRefs": [],
+        "residualRefs": ["authority:source-repo-write"],
+        "uncertainty": ["receiver must authorize locally"],
+        "doesNotEstablish": ["identity", "protocol", "purpose-meaning"]
+      }
+    ],
+    "outputRefs": ["testimony:CROSSING-001"],
+    "parentContinuityRefs": [],
+    "occurrenceClaim": "continuation-only"
+  },
+  "sourceHints": {
+    "protectedRefs": ["artifact:odd-small-1"],
+    "openProposals": [
+      {
+        "sourceProposalRef": "proposal:inspect-next",
+        "kind": "runnable-specimen"
+      }
+    ]
+  },
+  "destinationContext": {
+    "destinationNodeRef": "loadout-phaselift-fixture",
+    "destinationFrameRef": "world:B-candidate",
+    "manifest": {
+      "nodeRef": "loadout-phaselift-fixture",
+      "protocolVersion": "p0.exchange/0.1",
+      "accepts": ["witness"],
+      "emits": ["witness"],
+      "capabilities": ["receive_public_witness"],
+      "requiredScopes": ["public"],
+      "mustNever": ["accept_source_authority_as_local"]
+    },
+    "grantedScopes": ["public"],
+    "destinationAuthorityRefs": ["authority:loadout-local-read"]
+  },
+  "encounterOptions": {
+    "requiredCapability": "receive_public_witness",
+    "requiredScope": "public",
+    "localDetermination": "admit",
+    "evidenceRefs": ["policy:loadout-local"]
+  }
+}
