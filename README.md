@@ -172,4 +172,8 @@ Historical `loadout.manifest/v0` receipts remain witnesses rather than being rew
 
 ## Status
 
-**Executable v0 kernel candidate.** No production daemon, registry, network authority, master ontology, automatic plugin orchestration, universal PHASELIFT runtime, or Dogram runtime dependency is claimed.
+**Executable v0 kernel candidate with a `LOADOUT.dev/v0` conformance floor.** The repository includes provider-independent capability compilation, body-declared reachable effects, exact adapter-body attribution, effect fencing, state-bound developer workflow gates, inert effect intents/receipts, deterministic fake-adapter hostile tests, and the bounded PHASELIFT receiver/reconstitution proof described above.
+
+It does **not** yet claim live provider orchestration, credential storage, merge/publication automation, background watching, a universal PHASELIFT runtime, full Dogram lowering, a production daemon, network authority, a master ontology, or a Dogram runtime dependency.
+
+See `docs/specs/2026-08-28-loadout-dev-native-developer-toolset.md`, `docs/superpowers/plans/2026-08-28-loadout-dev-v0.md`, and `evals/LOADOUT-DEV-v0.md`.
