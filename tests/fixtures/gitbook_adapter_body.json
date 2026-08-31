@@ -1,0 +1,1 @@
+{"adapter_id":"gitbook-adapter","body_time_id":"gitbook-adapter@2222222222222222222222222222222222222222","source_sha":"2222222222222222222222222222222222222222","capabilities":[{"name":"docs.inspect","effect":"OBSERVE"},{"name":"docs.propose","effect":"REMOTE_PROPOSE"},{"name":"docs.publish","effect":"PUBLISH"}]}

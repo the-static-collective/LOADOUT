@@ -1,0 +1,1 @@
+{"adapter_id":"wolfram-read-adapter","body_time_id":"wolfram-read-adapter@3333333333333333333333333333333333333333","source_sha":"3333333333333333333333333333333333333333","capabilities":[{"name":"math.inspect","effect":"OBSERVE"},{"name":"math.compute","effect":"LOCAL_COMPUTE"}]}
