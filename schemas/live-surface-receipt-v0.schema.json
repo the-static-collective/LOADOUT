@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://the-static-collective.github.io/loadout/schemas/live-surface-receipt-v0.schema.json",
+  "title": "Static Collective Live Surface Receipt v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "organ",
+    "owner",
+    "resolved_ref",
+    "resolved_sha",
+    "manifest_path",
+    "entrypoint",
+    "loaded",
+    "freshness",
+    "fallback_used"
+  ],
+  "properties": {
+    "schema": {"const": "static-collective/live-surface-receipt/v0"},
+    "organ": {"type": ["string", "null"]},
+    "owner": {"type": ["string", "null"]},
+    "resolved_ref": {"type": ["string", "null"]},
+    "resolved_sha": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "manifest_path": {"const": ".live/current-organ.json"},
+    "entrypoint": {"type": ["string", "null"]},
+    "loaded": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "freshness": {"enum": ["RESOLVED", "UNRESOLVED"]},
+    "fallback_used": {"type": "boolean"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"freshness": {"const": "RESOLVED"}}},
+      "then": {
+        "properties": {
+          "resolved_ref": {"type": "string", "minLength": 1},
+          "resolved_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+          "fallback_used": {"const": false}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"freshness": {"const": "UNRESOLVED"}}},
+      "then": {
+        "properties": {
+          "resolved_sha": {"type": "null"}
+        }
+      }
+    }
+  ]
+}

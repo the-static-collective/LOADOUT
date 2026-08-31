@@ -83,6 +83,7 @@ loadout ablate
 loadout trace
 loadout decay
 loadout reconstitute
+loadout resolve-live
 ```
 
 `loadout.compile/v0` is owned here. The ALEX adapter lowers an immutable compile into `alex.run-envelope/v0`; sharing a protocol does not merge the two systems.
@@ -103,6 +104,79 @@ source testimony
 Source authority never becomes local authorization by transport. `LIFT` and `DEGRADED` may emit a new `loadout.world-birth/v0` receipt after local compilation and authorization. `HOLD` and `REFUSE` do not constitute a world. Source proposals, when adopted, receive new LOADOUT-local proposal identities rather than becoming executable destination edges unchanged.
 
 This surface proves bounded crossing/reconstitution only. It does not claim a network protocol, daemon, universal PHASELIFT runtime, automatic merge plane, or portable `PROTECTED` ontology.
+
+## LIVE-SURFACE / CURRENT-ORGAN v0
+
+The uploaded ChatGPT-facing surface is not the organ. It is a stable re-entry membrane that can resolve the current owner material when the host provides attributable repository evidence.
+
+```text
+uploaded surface != organ
+
+resolve owner head
+  -> pin exact SHA
+  -> load minimally
+  -> work
+  -> receipt
+```
+
+Core law:
+
+> **Live across occurrences; pinned within an occurrence.**
+
+LOADOUT owns the common resolution protocol, not neighboring organ semantics:
+
+```text
+common protocol != common owner
+fallback != current
+retrieval != adoption
+pointer != truth
+loaded != supported
+receipt != authority
+```
+
+The first owner manifest lives at `.live/current-organ.json`. It points to the portable LOADOUT entrypoint at `skills/loadout/SKILL.md` and declares the repository roots eligible for bounded loading.
+
+The production resolver in `loadout.live_surface` performs **no network access**. A host supplies already-attributed evidence containing the repository owner, a resolved ref, an exact 40-hex commit SHA, the pinned `.live/current-organ.json`, and the file bodies available at that SHA. LOADOUT verifies that the evidence owner matches the manifest owner and that the manifest body is the one present at the pinned SHA before it loads the entrypoint or any requested references. It then selects only allowed, explicitly needed paths and emits a receipt.
+
+A local host adapter can exercise the same contract with JSON files:
+
+```bash
+loadout resolve-live manifest.json evidence.json --path docs/needed.md
+```
+
+A successful result exits `0` with `freshness = RESOLVED`. An unresolved or refused result exits `2`. If live owner evidence cannot be obtained, an embedded bootstrap may be used only as an explicitly `UNRESOLVED` fallback; it must never be represented as current.
+
+Published contracts:
+
+- `schemas/current-organ-v0.schema.json`
+- `schemas/live-surface-receipt-v0.schema.json`
+
+Design and implementation plan:
+
+- `docs/superpowers/specs/2026-08-29-live-surface-current-organ-design.md`
+- `docs/superpowers/plans/2026-08-29-live-surface-v0-implementation.md`
+
+## READ-ONLY-HOST-ADAPTER-001
+
+`LocalGitReadAdapter` is the first real read-only host proof for LOADOUT.dev. It uses the existing effect-intent and adapter protocol rather than creating a second authority system.
+
+```text
+LocalGitReadAdapter = real read-only host proof
+CURRENT ref != immutable object
+host access != write authority
+adapter result != semantic truth
+```
+
+Its complete v0 host capability surface is:
+
+```text
+git.resolve_ref
+git.read_blob
+```
+
+`git.resolve_ref` resolves a named local ref to one exact commit SHA. `git.read_blob` reads exact bytes from `<commit-sha>:<path>` inside declared repository roots. Results are content-addressed and retained only in memory. CURRENT-ORGAN can therefore resolve a mutable ref once, pin the returned SHA, and keep reading the same immutable constitution even after the branch advances.
+
+The adapter exposes no generic shell capability and no Git write or network operation. Checkout, switch, merge, reset, commit, push, fetch, pull, clone, remote mutation, credentials, arbitrary shell execution, and network clients are outside the v0 surface. Shell metacharacters remain literal argv data, path traversal refuses before Git invocation, and successful host reads do not grant merge, publication, mutation, or semantic authority.
 
 ### Dogram-shaped, not Dogram-dependent
 
@@ -172,8 +246,8 @@ Historical `loadout.manifest/v0` receipts remain witnesses rather than being rew
 
 ## Status
 
-**Executable v0 kernel candidate with a `LOADOUT.dev/v0` conformance floor.** The repository includes provider-independent capability compilation, body-declared reachable effects, exact adapter-body attribution, effect fencing, state-bound developer workflow gates, inert effect intents/receipts, deterministic fake-adapter hostile tests, and the bounded PHASELIFT receiver/reconstitution proof described above.
+**Executable v0 kernel candidate with a `LOADOUT.dev/v0` conformance floor.** The repository includes provider-independent capability compilation, body-declared reachable effects, exact adapter-body attribution, effect fencing, state-bound developer workflow gates, inert effect intents/receipts, deterministic fake-adapter hostile tests, the bounded PHASELIFT receiver/reconstitution proof, the host-supplied LIVE-SURFACE / CURRENT-ORGAN resolution protocol, and the real local-Git read-only host proof described above.
 
-It does **not** yet claim live provider orchestration, credential storage, merge/publication automation, background watching, a universal PHASELIFT runtime, full Dogram lowering, a production daemon, network authority, a master ontology, or a Dogram runtime dependency.
+It does **not** claim live provider orchestration, credential storage, merge/publication automation, background watching, a universal PHASELIFT runtime, full Dogram lowering, a production daemon, network authority, a master ontology, or a Dogram runtime dependency.
 
 See `docs/specs/2026-08-28-loadout-dev-native-developer-toolset.md`, `docs/superpowers/plans/2026-08-28-loadout-dev-v0.md`, and `evals/LOADOUT-DEV-v0.md`.

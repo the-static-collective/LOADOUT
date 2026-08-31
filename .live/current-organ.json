@@ -4,6 +4,12 @@
   "owner": "the-static-collective/LOADOUT",
   "entrypoint": "skills/loadout/SKILL.md",
   "state": null,
+  "allowed_roots": [
+    "skills/loadout",
+    "docs",
+    "schemas",
+    "evals"
+  ],
   "orientation": {
     "kind": "gitbook-front-room",
     "required": false
