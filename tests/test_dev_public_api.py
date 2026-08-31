@@ -12,3 +12,14 @@ def test_public_api_exports_v0_surface():
     assert expected <= set(dev.__all__)
     for name in expected:
         assert hasattr(dev, name)
+
+
+def test_public_api_exports_read_only_host_surface():
+    expected = {
+        "LocalGitReadAdapter",
+        "parameter_map",
+        "resolve_current_organ_from_git",
+    }
+    assert expected <= set(dev.__all__)
+    for name in expected:
+        assert hasattr(dev, name)
