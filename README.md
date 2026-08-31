@@ -156,6 +156,28 @@ Design and implementation plan:
 - `docs/superpowers/specs/2026-08-29-live-surface-current-organ-design.md`
 - `docs/superpowers/plans/2026-08-29-live-surface-v0-implementation.md`
 
+## READ-ONLY-HOST-ADAPTER-001
+
+`LocalGitReadAdapter` is the first real read-only host proof for LOADOUT.dev. It uses the existing effect-intent and adapter protocol rather than creating a second authority system.
+
+```text
+LocalGitReadAdapter = real read-only host proof
+CURRENT ref != immutable object
+host access != write authority
+adapter result != semantic truth
+```
+
+Its complete v0 host capability surface is:
+
+```text
+git.resolve_ref
+git.read_blob
+```
+
+`git.resolve_ref` resolves a named local ref to one exact commit SHA. `git.read_blob` reads exact bytes from `<commit-sha>:<path>` inside declared repository roots. Results are content-addressed and retained only in memory. CURRENT-ORGAN can therefore resolve a mutable ref once, pin the returned SHA, and keep reading the same immutable constitution even after the branch advances.
+
+The adapter exposes no generic shell capability and no Git write or network operation. Checkout, switch, merge, reset, commit, push, fetch, pull, clone, remote mutation, credentials, arbitrary shell execution, and network clients are outside the v0 surface. Shell metacharacters remain literal argv data, path traversal refuses before Git invocation, and successful host reads do not grant merge, publication, mutation, or semantic authority.
+
 ### Dogram-shaped, not Dogram-dependent
 
 Dogram's metaoscillatory architecture informs the reflective hatch:
@@ -224,8 +246,8 @@ Historical `loadout.manifest/v0` receipts remain witnesses rather than being rew
 
 ## Status
 
-**Executable v0 kernel candidate with a `LOADOUT.dev/v0` conformance floor.** The repository includes provider-independent capability compilation, body-declared reachable effects, exact adapter-body attribution, effect fencing, state-bound developer workflow gates, inert effect intents/receipts, deterministic fake-adapter hostile tests, the bounded PHASELIFT receiver/reconstitution proof, and the host-supplied LIVE-SURFACE / CURRENT-ORGAN resolution protocol described above.
+**Executable v0 kernel candidate with a `LOADOUT.dev/v0` conformance floor.** The repository includes provider-independent capability compilation, body-declared reachable effects, exact adapter-body attribution, effect fencing, state-bound developer workflow gates, inert effect intents/receipts, deterministic fake-adapter hostile tests, the bounded PHASELIFT receiver/reconstitution proof, the host-supplied LIVE-SURFACE / CURRENT-ORGAN resolution protocol, and the real local-Git read-only host proof described above.
 
-It does **not** yet claim live provider orchestration, credential storage, merge/publication automation, background watching, a universal PHASELIFT runtime, full Dogram lowering, a production daemon, network authority, a master ontology, or a Dogram runtime dependency.
+It does **not** claim live provider orchestration, credential storage, merge/publication automation, background watching, a universal PHASELIFT runtime, full Dogram lowering, a production daemon, network authority, a master ontology, or a Dogram runtime dependency.
 
 See `docs/specs/2026-08-28-loadout-dev-native-developer-toolset.md`, `docs/superpowers/plans/2026-08-28-loadout-dev-v0.md`, and `evals/LOADOUT-DEV-v0.md`.

@@ -140,6 +140,23 @@ class EffectIntent:
     body_time_id: str
     precondition_state: str
     parameters_digest: str
+    parameters: tuple[tuple[str, str], ...] = ()
+
+
+def parameter_map(intent: EffectIntent) -> dict[str, str]:
+    """Return bounded string parameters, refusing duplicate keys."""
+
+    result: dict[str, str] = {}
+    for pair in intent.parameters:
+        if not isinstance(pair, tuple) or len(pair) != 2:
+            raise ValueError("parameters must be key/value pairs")
+        key, value = pair
+        if not isinstance(key, str) or not isinstance(value, str):
+            raise ValueError("parameter keys and values must be strings")
+        if key in result:
+            raise ValueError(f"duplicate parameter key: {key}")
+        result[key] = value
+    return result
 
 
 @dataclass(frozen=True)
