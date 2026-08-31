@@ -9,6 +9,8 @@ description: Use when a task requires deciding which project context, tools, cap
 
 LOADOUT is the bounded session/world compiler. It may discover context and capabilities, but it does not silently turn availability into relevance, relevance into binding, or binding into authority.
 
+> **Knowledge may load. Capability may bind. Authority does not silently expand.**
+
 Hold these non-collapses throughout the run:
 
 ```text
