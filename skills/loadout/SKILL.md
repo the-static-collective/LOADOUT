@@ -1,34 +1,34 @@
 ---
 name: loadout
-description: Bring the smallest bounded world that can do the job. Resolve current LOADOUT canon from its owning repository when host capability allows, pin one exact commit per occurrence, load only what is needed, preserve authority boundaries, and leave a receipt.
+description: Use when a task requires deciding which project context, tools, capabilities, or effects should enter a bounded occurrence; when multiple organs are available but only some are relevant; when capability, authority, side effects, freshness, or current-project state must be fenced; or when compiling, ablating, or recompiling a task world with an attributable receipt.
 ---
 
 # LOADOUT
 
-> Bring the smallest world that can do the job.
+**Bring the smallest world that can do the job.**
 
-LOADOUT is the bounded session/world compiler for the Static Collective. It decides what context and capability may enter a task-world without silently expanding authority.
+LOADOUT is the bounded session/world compiler. It may discover context and capabilities, but it does not silently turn availability into relevance, relevance into binding, or binding into authority.
 
-## Constitutional floor
-
-**Knowledge may load. Capability may bind. Authority does not silently expand.**
-
-Preserve these non-collapses:
+Hold these non-collapses throughout the run:
 
 ```text
-TASK != tool list
+mention != mandatory binding
 availability != relevance
 relevance != binding
 binding != authority
-retrieval != adoption
-pointer != truth
-loaded != supported
-orientation != retrieval
+discovery != invocation
+read authority != write authority
+router choice != evidence
+representation capability != intervention capability
 receipt != authority
-common protocol != common owner
+reflection != mutation
+live != unpinned
+latest != admitted
 ```
 
-The operating flow is:
+## Compile the bounded world
+
+Use the smallest sufficient path:
 
 ```text
 TASK
@@ -43,80 +43,71 @@ TASK
   -> RECEIPT
 ```
 
-## LIVE-SURFACE constitution
+1. **CUT** — state the task, owner question, stopping condition, relevant time/knowledge cut, and effect boundary.
+2. **CLASSIFY** — distinguish needed knowledge, representation, computation, intervention, and publication/mutation effects.
+3. **DISCOVER** — find available context, organs, tools, and owner-owned state without treating availability as selection.
+4. **SELECT** — choose only what materially helps the task. An explicit mention is evidence of interest, not automatic binding.
+5. **REACH** — determine what the selected capability can actually reach, including indirect or future-facing effects.
+6. **FENCE** — name effects that must remain outside the occurrence. A fence alone is not authorization.
+7. **BIND** — return `BIND`, `REFUSE`, or `UNRESOLVED`. Effectful bindings require attributable authorization and owner-gate evidence.
+8. **WORK** — operate only inside the admitted world. Missing capability may reduce method without invalidating the task.
+9. **RECEIPT** — preserve why each binding existed, what stayed asleep, what authority was present, and what remained unresolved.
 
-**Live across occurrences; pinned within an occurrence.**
+## Live constitution
 
-When the host can read the owning repository:
+For ChatGPT-facing or other portable surfaces, apply the LIVE-SURFACE contract owned by this repository:
 
-1. Read `.live/current-organ.json` from `the-static-collective/LOADOUT`.
-2. Resolve the repository's current default-branch head.
-3. Freeze that exact commit SHA for this occurrence.
-4. Read `skills/loadout/SKILL.md` at the pinned SHA.
-5. Load only references required by the task and only from manifest-declared roots.
-6. Do not re-resolve "latest" during the same occurrence. A newer head requires a new occurrence or an explicit reconstitution.
-7. Perform bounded work through the normal LOADOUT gates.
-8. Leave a receipt naming the owner, ref, exact SHA, entrypoint, and loaded paths.
+> **Resolve live. Pin locally. Load minimally. Preserve ownership. Receipt the world.**
+>
+> **Live across occurrences; pinned within an occurrence.**
 
-A branch name, mutable URL, cached summary, GitBook page, or Free Graph pointer is not an exact replay identity. The commit SHA is.
+When current organ state matters:
 
-## Fallback
+1. resolve the owning repository's `.live/current-organ.json` from its default branch;
+2. resolve that branch to one exact commit SHA;
+3. freeze the SHA for the bounded occurrence;
+4. load the manifest entrypoint and only task-required references at that SHA;
+5. never mix a newer head into the occurrence without an explicit reconstitution;
+6. if live resolution fails, mark freshness `UNRESOLVED` and use only an embedded/static floor that is sufficient for the task.
 
-If live resolution is unavailable or incomplete, the embedded surface may provide this constitutional floor only when it is sufficient for the task.
+A successful resolver result does not grant semantic ownership or effect authority. GitBook and Free Graph may orient or point; exact-SHA project-owned material owns local project constitution.
 
-In that case:
+The canonical design is `docs/superpowers/specs/2026-08-29-live-surface-current-organ-design.md`.
 
-```text
-freshness = UNRESOLVED
-fallback != current
-```
+## Executable floor
 
-State what could not be resolved. Never describe an embedded snapshot as current merely because no newer owner evidence was reachable.
+The repository kernel currently exposes deterministic operations for reachability, deltas, fences, binding, trace, ablation, decay, ALEX envelope lowering, and reflective recompile proposals. Use executable paths when the task needs machine-checked compilation; otherwise preserve the same constitutional distinctions in reasoning.
 
-Do not claim network, GitHub, GitBook, filesystem, or other host capability unless the host actually provides it.
-
-## Ownership boundary
-
-LOADOUT owns bounded world and capability compilation. It does not absorb neighboring organs:
-
-- **ALEX** owns provenance-first research formation, evidence-to-claim derivation, pressure, and refusal.
-- **3rdi** owns observer-local projection and attributed cuts.
-- **Free Graph** carries historical roads, encounters, ancestry, and resolvable pointers; it does not become current project truth.
-- **GitBook Front Room** may orient and expose doors; orientation does not outrank current project-owned evidence.
-- **Owning projects and humans** retain admission, mutation, publication, merge, and consequence.
-
-Successful resolution does not grant write, merge, publication, execution, or effect authority.
-
-## Minimum-load discipline
-
-Prefer the smallest sufficient context:
+Core reflective hatch:
 
 ```text
-entrypoint
-  + directly required references
-  + current state only when the task depends on it
-  + eval/specimen material only when pressure requires it
+COMPILE
+  -> RECEIPT / REIFY
+  -> PRESSURE
+  -> RECOMPILE PROPOSAL
+  -> GATE
+  -> COMPILE'
 ```
 
-Reachability is not a reason to ingest a whole repository.
+A proposal is inert. It cannot expand authority or capability merely because reflection found a better shape.
 
-## Receipts
+## Neighbor ownership
 
-A LIVE-SURFACE receipt records the world actually used. At minimum preserve:
+- **3rdi** owns observer-local projection and attributed cut/decoder constitution.
+- **ALEX** owns provenance-first research formation, derivation pressure, source-to-claim support, and refusal.
+- **Free Graph** remembers roads and ancestry without becoming current-state authority.
+- **LOADIN.STEAD** resolves declared destinations; `route != admit`.
+- **Owning projects and humans** retain admission, publication, merge, mutation, and consequence.
 
-```text
-organ
-owner
-resolved_ref
-resolved_sha
-entrypoint
-loaded paths
-freshness
-fallback_used
-```
+LOADOUT may constitute a world containing another organ. It does not become that organ.
 
-A receipt proves what constitution was loaded. It does not prove the resulting answer is correct and does not mint authority.
+## Completion check
 
-## Deeper floor
+Before finishing, verify:
 
-For executable details, schemas, pressure operators, and current architectural specs, follow only the task-relevant doors in this repository at the pinned SHA. The primary README and `docs/` are references, not material to preload automatically.
+- the world contains no capability or context merely because it was available;
+- every effectful binding has an attributable authorization source and owner gate;
+- current-project material, when required, was resolved and pinned rather than repeatedly fetched as mutable `latest`;
+- missing live access is visible rather than converted into false freshness;
+- router/output choices were not promoted into evidence;
+- the receipt distinguishes knowledge loaded, capabilities bound, effects fenced, and authority actually present.
