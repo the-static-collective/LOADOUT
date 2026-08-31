@@ -10,6 +10,10 @@
     "schemas",
     "evals"
   ],
+  "orientation": {
+    "kind": "gitbook-front-room",
+    "required": false
+  },
   "resolution": "default-branch-head-then-pin",
   "fallback": "embedded-bootstrap"
 }
