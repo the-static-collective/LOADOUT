@@ -60,7 +60,8 @@ def test_refuses_invalid_digest_state() -> None:
 
 def test_refuses_declared_change_mismatch() -> None:
     packet = valid_packet()
-    packet["surface"][0]["main_changed"] = False
+    record = next(item for item in packet["surface"] if item["path"] == "a.txt")
+    record["main_changed"] = False
     assert_reason(packet, "DECLARED_CHANGE_MISMATCH")
 
 
