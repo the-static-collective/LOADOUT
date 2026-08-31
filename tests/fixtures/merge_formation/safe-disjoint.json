@@ -1,0 +1,48 @@
+{
+  "schema": "loadout.merge-formation-evidence/v0",
+  "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "main_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "feature_sha": "cccccccccccccccccccccccccccccccccccccccc",
+  "candidate_sha": "dddddddddddddddddddddddddddddddddddddddd",
+  "behind_main": true,
+  "surface_complete": true,
+  "candidate_complete": true,
+  "combined_verification": "pass",
+  "candidate_parent_shas": [
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "cccccccccccccccccccccccccccccccccccccccc"
+  ],
+  "surface": [
+    {
+      "path": "b.txt",
+      "base_digest": null,
+      "main_digest": null,
+      "feature_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "candidate_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "main_changed": false,
+      "feature_changed": true,
+      "resolution": "feature"
+    },
+    {
+      "path": "sentinel.txt",
+      "base_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "main_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "feature_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "candidate_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "main_changed": false,
+      "feature_changed": false,
+      "resolution": null,
+      "sentinel": true
+    },
+    {
+      "path": "a.txt",
+      "base_digest": null,
+      "main_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "feature_digest": null,
+      "candidate_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "main_changed": true,
+      "feature_changed": false,
+      "resolution": "main"
+    }
+  ]
+}

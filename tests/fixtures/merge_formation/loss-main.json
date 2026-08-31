@@ -1,0 +1,34 @@
+{
+  "schema": "loadout.merge-formation-evidence/v0",
+  "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "main_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "feature_sha": "cccccccccccccccccccccccccccccccccccccccc",
+  "candidate_sha": "ffffffffffffffffffffffffffffffffffffffff",
+  "behind_main": true,
+  "surface_complete": true,
+  "candidate_complete": true,
+  "combined_verification": "pass",
+  "candidate_parent_shas": ["cccccccccccccccccccccccccccccccccccccccc"],
+  "surface": [
+    {
+      "path": "a.txt",
+      "base_digest": null,
+      "main_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "feature_digest": null,
+      "candidate_digest": null,
+      "main_changed": true,
+      "feature_changed": false,
+      "resolution": "feature"
+    },
+    {
+      "path": "b.txt",
+      "base_digest": null,
+      "main_digest": null,
+      "feature_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "candidate_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "main_changed": false,
+      "feature_changed": true,
+      "resolution": "feature"
+    }
+  ]
+}
