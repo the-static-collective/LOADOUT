@@ -25,19 +25,20 @@ else:
             "effect": envelope["effect"],
         }
     ]
-    print(
-        json.dumps(
-            {
-                "schema": "loadout.openmanus-worker-result/v0",
-                "disposition": "REFUSED" if mode == "refused" else "COMPLETED",
-                "observed_post_state": None if mode == "refused" else "state:1",
-                "artifacts": [{"path": "artifact.txt"}],
-                "observations": observations,
-                "provider_receipt": {
-                    "steps_executed": 3,
-                    "termination": mode,
-                },
-            }
-        )
-    )
+    result = {
+        "schema": "loadout.openmanus-worker-result/v0",
+        "disposition": "REFUSED" if mode == "refused" else "COMPLETED",
+        "observed_post_state": None if mode == "refused" else "state:1",
+        "artifacts": [{"path": "artifact.txt"}],
+        "observations": observations,
+        "provider_receipt": {
+            "steps_executed": True if mode == "bool-steps" else 3,
+            "termination": mode,
+        },
+    }
+    if mode == "extra-top":
+        result["unexpected"] = "must be rejected"
+    if mode == "extra-receipt":
+        result["provider_receipt"]["unexpected"] = "must be rejected"
+    print(json.dumps(result))
     print("provider diagnostic", file=sys.stderr)
