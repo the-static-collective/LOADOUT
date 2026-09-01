@@ -27,6 +27,13 @@ def test_public_api_exports_read_only_host_surface():
         assert hasattr(dev, name)
 
 
+def test_public_api_exports_openmanus_provider_surface() -> None:
+    expected = {"OpenManusJsonStdioAdapter", "OpenManusProviderReceipt"}
+    assert expected <= set(dev.__all__)
+    for name in expected:
+        assert hasattr(dev, name)
+
+
 def test_merge_formation_public_api_exports_only_neutral_analyzer_names() -> None:
     assert callable(dev.analyze_merge_formation)
     assert issubclass(dev.MergeFormationInputError, ValueError)
