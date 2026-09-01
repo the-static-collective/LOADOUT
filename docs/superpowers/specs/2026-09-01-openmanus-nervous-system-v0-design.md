@@ -28,6 +28,7 @@ available tool != bound capability
 worker memory != evidence store
 worker observation != truth
 successful execution != admission
+provider receipt != effect receipt
 receipt != authority
 ```
 
@@ -60,7 +61,7 @@ CompileReceipt + EffectIntent
             ↓
 LOADOUT membrane checks
             ↓
-OpenManusAdapter
+OpenManusJsonStdioAdapter
             ↓
 canonical worker envelope (JSON)
             ↓
@@ -68,7 +69,11 @@ provider command over stdin/stdout
             ↓
 canonical provider result (JSON)
             ↓
-EffectReceipt
+OpenManusProviderReceipt ledger
+            ↓
+(provider disposition, observed post-state)
+            ↓
+existing EffectReceipt
 ```
 
 Reasons:
@@ -79,6 +84,7 @@ Reasons:
 4. Process environment and inherited capabilities can be explicitly narrowed.
 5. Replay can bind to exact provider body time.
 6. Tests can use a deterministic fake provider command without installing OpenManus.
+7. Rich provider testimony stays distinct from the narrow cross-provider `EffectReceipt`.
 
 ### 2.2 Rejected alternatives
 
@@ -90,7 +96,7 @@ Reasons:
 
 ## 3. V0 capability surface
 
-The first OpenManus adapter may advertise only these provider-independent effect classes:
+The first adapter body may advertise provider-independent capabilities whose effect classes are restricted to:
 
 ```text
 OBSERVE
@@ -98,9 +104,9 @@ LOCAL_COMPUTE
 LOCAL_MUTATE
 ```
 
-`LOCAL_MUTATE` is restricted to a declared sandbox/workspace root.
+`LOCAL_MUTATE` is restricted at the LOADOUT envelope level to a declared workspace target. This is a constitutional fence, not an OS sandbox claim.
 
-The adapter MUST NOT advertise or perform in v0:
+The adapter MUST NOT advertise in v0:
 
 ```text
 REMOTE_PROPOSE
@@ -114,7 +120,7 @@ repository merge operations
 external publication
 ```
 
-A provider may internally possess broader machinery. Unadvertised provider machinery is outside the constituted world and must not become reachable through the adapter.
+A provider may internally possess broader machinery. Possession does not constitute permission. Deterministic v0 tests prove LOADOUT refuses requests outside the bound surface before provider launch. Actual provider-side containment is a separate live-conformance claim.
 
 ## 4. Provider body identity
 
@@ -137,7 +143,7 @@ Initial body time:
 openmanus.worker.json-stdio/v0@3309bf4e416fb1c74b008f3e86494439a31bad53
 ```
 
-The upstream SHA identifies the OpenManus source body the adapter contract was inspected against. It does not claim that arbitrary local provider installations actually match that source. Runtime launch configuration must separately identify the provider command used for the occurrence.
+The upstream SHA identifies the OpenManus source body the adapter contract was inspected against. It does not claim that an arbitrary local provider installation matches that source. Runtime launch configuration separately identifies the provider command used for the occurrence.
 
 Replay with an unpinned body remains refused by the existing compiler.
 
@@ -159,20 +165,39 @@ Required fields:
   "body_time_id": "openmanus.worker.json-stdio/v0@<sha40>",
   "capability": "provider-independent capability name",
   "effect": "OBSERVE | LOCAL_COMPUTE | LOCAL_MUTATE",
-  "target": "declared LOADOUT target",
+  "target": "workspace:<relative-posix-path>",
   "precondition_state": "caller supplied state id",
   "parameters_digest": "caller supplied digest",
   "parameters": {"bounded": "string map"},
-  "workspace_root": "/declared/sandbox/root",
+  "workspace_root": "/declared/workspace/root",
   "max_steps": 20
 }
 ```
+
+### 5.1 V0 target grammar
+
+For this adapter, targets use:
+
+```text
+workspace:.
+workspace:path/to/object
+```
+
+Rules:
+
+- the suffix is a relative POSIX path;
+- absolute paths refuse;
+- `..` traversal refuses;
+- the resolved path must remain under the configured `workspace_root`;
+- the exact target string still must already be present in the LOADOUT compile cut.
+
+This gives the adapter a deterministic target boundary without redefining global LOADOUT target semantics.
 
 The envelope carries no owner authority and no semantic authority.
 
 The adapter does not generate task policy from prose. It translates an admitted effect intent.
 
-## 6. Provider result
+## 6. Provider result and provider receipt
 
 The provider command must return exactly one JSON result object on stdout.
 
@@ -198,35 +223,82 @@ Required shape:
 }
 ```
 
-`observations` and `artifacts` are provider testimony. They do not become ALEX claims, 3rdi projections, canonical repository state, or owner decisions merely by being returned.
+The adapter validates this object and converts it into an immutable `OpenManusProviderReceipt` containing:
 
-`EffectReceipt.semantic_authority` remains `False`.
+```text
+body_time_id
+capability
+effect
+target
+precondition_state
+parameters_digest
+provider_disposition
+observed_post_state
+artifacts
+observations
+steps_executed
+termination
+stderr
+```
+
+`OpenManusJsonStdioAdapter` preserves these receipts in occurrence-local insertion order through a read-only tuple view, e.g. `provider_receipts`.
+
+The existing `Adapter.invoke()` protocol remains unchanged:
+
+```python
+invoke(intent: EffectIntent) -> tuple[str, str | None]
+```
+
+After recording the rich provider receipt, it returns only:
+
+```text
+(provider_disposition, observed_post_state)
+```
+
+The existing membrane then constructs the cross-provider `EffectReceipt` with `semantic_authority=False`.
+
+Therefore:
+
+```text
+OpenManusProviderReceipt != EffectReceipt
+provider testimony != semantic conclusion
+```
+
+`observations` and `artifacts` are attributable provider testimony. ALEX or 3rdi may consume them only through an explicit later handoff; they do not silently enter those systems.
 
 ## 7. Adapter responsibilities
 
-Create `OpenManusJsonStdioAdapter` implementing the existing `Adapter` protocol:
+Create `OpenManusJsonStdioAdapter` implementing the existing `Adapter` protocol.
 
-```python
-body_time_id: str
-invoke(intent: EffectIntent) -> tuple[str, str | None]
+Construction inputs:
+
+```text
+body_time_id
+command_argv
+workspace_root
+timeout_seconds
+max_steps
+environment
 ```
 
 The adapter owns only transport-boundary checks and execution translation.
 
 It MUST:
 
-- verify its body-time id at construction;
-- accept only an explicit provider command argv tuple;
-- accept only an explicit workspace root;
+- verify the exact `openmanus.worker.json-stdio/v0@<sha40>` body-time form at construction;
+- accept only a non-empty explicit provider command argv tuple;
+- accept only an explicit existing workspace root;
 - reject unsupported effect classes before launch;
+- validate the provider-specific workspace target grammar before launch;
 - convert bounded parameters using existing `parameter_map()`;
 - reject duplicate or malformed parameters through existing model law;
 - encode one canonical JSON envelope;
 - launch without a shell;
 - provide the envelope on stdin;
-- enforce an execution timeout;
+- enforce a positive execution timeout;
 - capture stdout and stderr separately;
 - reject empty, malformed, multi-object, or wrong-schema stdout;
+- preserve one `OpenManusProviderReceipt` for every launched occurrence, including provider refusal/error;
 - map provider `COMPLETED`, `REFUSED`, and `ERROR` to provider dispositions without claiming semantic authority;
 - return an attributable post-state only when the provider supplies one;
 - avoid mutating the parent process environment.
@@ -236,14 +308,17 @@ It MUST NOT:
 - call `shell=True`;
 - interpolate task text into a shell command;
 - infer additional capabilities from the provider executable;
-- grant network, Git, publication, or credential reach not represented by the compiled binding;
-- reinterpret provider observations as evidence conclusions.
+- grant network, Git, publication, or credential reach merely because the provider possesses such machinery;
+- reinterpret provider observations as evidence conclusions;
+- modify `EffectClass`, `EffectIntent`, `CompileReceipt`, `OwnerGate`, or the core membrane merely to carry OpenManus-specific detail.
 
 ## 8. Environment discipline
 
-The subprocess receives a caller-declared environment allowlist, not `os.environ` wholesale.
+The subprocess receives a caller-declared environment mapping, not `os.environ` wholesale.
 
-V0 default inherited environment is empty except for explicitly configured transport/runtime variables required to locate the provider executable.
+V0 default child environment is empty. The caller must explicitly supply any variables required to locate or operate the provider runtime.
+
+Provider argv should use absolute executable paths when an empty `PATH` would otherwise make resolution ambiguous.
 
 Secrets are not automatically forwarded.
 
@@ -251,36 +326,35 @@ This is intentionally stricter than ordinary OpenManus local execution. If a lat
 
 ## 9. Workspace discipline
 
-`workspace_root` is resolved before invocation.
+`workspace_root` is resolved during adapter construction.
 
-For `LOCAL_MUTATE`:
+For all v0 targets:
 
-- the root must exist;
-- the root must be explicitly declared in adapter configuration;
-- the target must remain inside the LOADOUT cut;
-- the adapter contract promises only that LOADOUT passed this boundary deliberately.
+- the root must exist and be a directory;
+- the target suffix must be relative;
+- path traversal and absolute target suffixes refuse before provider launch;
+- envelope paths resolve beneath the declared root.
 
-V0 does not claim OS-level confinement merely because a path was declared. Real sandbox enforcement belongs to the provider/runtime configuration and must be reported as such.
-
-Therefore:
+These checks prove what LOADOUT handed to the provider. They do not prove what arbitrary provider code could do afterward.
 
 ```text
 declared workspace fence != kernel sandbox
+validated envelope path != filesystem jail
 provider sandbox claim != LOADOUT proof
 ```
 
-A later `SandboxManus` integration may strengthen this boundary without changing the provider-independent LOADOUT effect model.
+A later live-conformance gate may use OpenManus `SandboxManus`, a container, or another externally enforced sandbox. That strengthening must not change the provider-independent LOADOUT effect model.
 
 ## 10. OpenManus-side shim
 
-V0 adds a small provider-side shim script outside LOADOUT's import graph. The shim's job is intentionally mechanical:
+V0 adds a small provider-side shim outside LOADOUT's import graph. Its mechanical contract is:
 
 ```text
 read one envelope
-validate schema
-construct one Manus/SandboxManus occurrence
-expose only envelope-selected provider tools
-run bounded request
+validate schema/body time
+disable default browser attachment unless explicitly designed later
+construct one bounded OpenManus occurrence
+run one request
 emit one result object
 cleanup
 exit
@@ -288,75 +362,90 @@ exit
 
 The shim is the only OpenManus-aware component. LOADOUT knows only the JSON contract.
 
-The initial shim may live in `contrib/openmanus/` in LOADOUT as integration glue, but it must remain optional and outside the production `loadout` package dependency graph.
+The initial shim lives in `contrib/openmanus/worker.py`, remains optional, and is outside the production `loadout` package dependency graph.
+
+### 10.1 Tool discipline
+
+The shim MUST NOT simply instantiate vanilla `Manus` and accept all default tools as proof of bounded capability.
+
+For the first live specimen it must construct an OpenManus `ToolCallAgent` occurrence with an explicitly supplied tool collection appropriate to that specimen, or run the worker in an externally enforced sandbox whose reachable effects are separately attributable.
+
+The deterministic LOADOUT tests do not depend on this shim and do not claim live provider containment.
 
 ## 11. First proving specimen — OPENMANUS-BIND-001
 
-The first hostile specimen proves **power without self-constitution**.
+The deterministic specimen proves **constitution before provider launch**.
 
 Constituted world:
 
 ```text
-Target: temporary sandbox fixture
-Allowed:
-  - bounded read
-  - local Python computation
-  - local write under sandbox root
-Forbidden:
-  - Git mutation
-  - network publication
-  - host credential access
-  - writes outside sandbox root
+Target: temporary workspace fixture
+Allowed effect classes:
+  - OBSERVE
+  - LOCAL_COMPUTE
+  - LOCAL_MUTATE
+Forbidden bindings:
+  - REMOTE_PROPOSE
+  - REMOTE_MUTATE
+  - PUBLISH
+  - LAND
 ```
 
 Test sequence:
 
-1. Compile a world that binds one OpenManus body to the three allowed effect classes.
-2. Invoke an `OBSERVE` intent and preserve the provider invocation receipt.
+1. Compile a world that binds one exact OpenManus adapter body to three fixture capabilities using the allowed effect classes.
+2. Invoke an `OBSERVE` intent and preserve both the narrow `EffectReceipt` and rich provider receipt.
 3. Invoke `LOCAL_COMPUTE` and verify an attributable returned post-state.
-4. Invoke `LOCAL_MUTATE` inside the declared sandbox fixture.
-5. Attempt an unsupported remote mutation and prove refusal occurs before provider launch.
+4. Invoke `LOCAL_MUTATE` against an admitted `workspace:<relative-path>` target.
+5. Request an unsupported remote mutation and prove refusal occurs before provider launch.
 6. Attempt a target outside the compile cut and prove refusal occurs before provider launch.
-7. Attempt with stale precondition state and prove refusal occurs before provider launch.
-8. Attempt with a wrong body-time id and prove refusal occurs before provider launch.
-9. Feed malformed provider JSON and map it to provider refusal/error without semantic authority.
-10. Compare declared reachable effects with observed provider effects in the eval receipt.
+7. Attempt a traversal/absolute workspace target and prove adapter refusal before provider launch.
+8. Attempt with stale precondition state and prove refusal occurs before provider launch.
+9. Attempt with a wrong body-time id and prove refusal occurs before provider launch.
+10. Feed malformed provider JSON and preserve an attributable provider error receipt without semantic authority.
+11. Compare declared reachable effects with launched provider occurrences in the eval receipt.
 
 Pass condition:
 
-> The worker can perform useful bounded work, but cannot enlarge its constituted capability surface by possessing additional OpenManus tools.
+> Requests outside the constituted body/effect/target/state boundary do not launch the provider, and launched provider testimony cannot self-promote into authority or semantic truth.
+
+This specimen does **not** prove that arbitrary OpenManus code is OS-contained after launch.
 
 ## 12. Testing strategy
 
 V0 uses TDD and separates contract proof from live-provider proof.
 
-### Deterministic contract tests
+### 12.1 Deterministic contract tests
 
 A fake JSON-stdio provider executable proves:
 
 - exact envelope shape;
 - argv execution without shell;
-- environment allowlisting;
+- empty-by-default/caller-declared child environment;
 - effect allowlisting;
+- target grammar and traversal refusal;
 - timeout behavior;
 - stdout/stderr separation;
-- malformed-result refusal;
-- deterministic result mapping;
-- no provider launch after membrane refusal.
+- malformed-result handling;
+- deterministic provider-receipt preservation;
+- deterministic `EffectReceipt` mapping;
+- no provider launch after compiler or membrane refusal.
 
 These tests run in ordinary CI without OpenManus.
 
-### Optional live integration test
+### 12.2 Optional live integration test
 
 A separately marked test may execute the pinned OpenManus shim when the provider environment is explicitly installed and configured.
 
-Failure or absence of the live provider must not falsify the deterministic LOADOUT contract tests.
+Failure or absence of the live provider must not falsify deterministic LOADOUT contract tests.
 
 Passing fake-provider tests does not claim OpenManus runtime conformance.
 
+Passing a live agent task does not claim containment unless the sandbox boundary is separately demonstrated.
+
 ## 13. Files expected in the first implementation
 
-Likely new files:
+New files:
 
 ```text
 src/loadout/dev/openmanus.py
@@ -368,16 +457,16 @@ tests/test_dev_openmanus.py
 evals/OPENMANUS-BIND-001.md
 ```
 
-Likely modified files:
+Modified files:
 
 ```text
 src/loadout/dev/__init__.py
 README.md
 ```
 
-No change to `EffectClass`, `EffectIntent`, `CompileReceipt`, `OwnerGate`, or the core membrane is required unless implementation evidence proves a real missing invariant.
+No change to `EffectClass`, `EffectIntent`, `CompileReceipt`, `OwnerGate`, or the core membrane is expected. If implementation evidence proves a missing invariant, the change requires a failing test and the smallest compatible amendment.
 
-That last restriction is deliberate: OpenManus must fit the nervous system before the nervous system changes to fit OpenManus.
+OpenManus must fit the nervous system before the nervous system changes to fit OpenManus.
 
 ## 14. Error and refusal model
 
@@ -388,7 +477,7 @@ PROVIDER_UNAVAILABLE
 PROVIDER_REFUSED
 ```
 
-Transport/schema errors remain provider failures rather than new authority states.
+Adapter transport/schema failures are recorded in the provider receipt and returned to the existing membrane as provider refusal/error dispositions. They do not create authority states.
 
 If implementation reveals a distinction that changes caller behavior materially, add the smallest new refusal reason only after a failing test demonstrates the need.
 
@@ -407,40 +496,43 @@ provider refusal != effect rollback
 OpenManus cleanup != transactional execution
 ```
 
-Consequently the first live specimen should run only against disposable local material.
+The first live specimen must use disposable material and must not receive production credentials.
 
 ## 16. Neighbor ownership after integration
 
 ### LOADOUT
-Constitutes the worker world, binds capabilities, fences effects, issues intents, and records effect receipts.
+Constitutes the worker world, binds capabilities, fences effects, issues intents, preserves cross-provider effect receipts, and preserves attributable provider invocation receipts.
 
 ### OpenManus
-Executes only the provider work admitted through the adapter occurrence and returns observations/artifacts.
+Executes provider work admitted through one adapter occurrence and returns observations/artifacts. It does not constitute its own LOADOUT authority.
 
 ### ALEX
-May ingest attributable returned source observations and decide how they participate in evidence formation. Worker output is not automatically a claim.
+May ingest attributable returned source observations through an explicit handoff and decide how they participate in evidence formation. Worker output is not automatically a claim.
 
 ### 3rdi
-May project worker observations under declared observer/cut/decoder coordinates. Worker memory is not global visibility.
+May project worker observations under declared observer/cut/decoder coordinates through an explicit handoff. Worker memory is not global visibility.
 
 ### Human / owning world
 Retains authority for publication, merge, remote mutation, adoption, and consequence.
 
 ## 17. Promotion gates
 
-V0 may be called a working adapter only after deterministic contract tests pass.
+V0 may be called a working **transport/constitution adapter** only after deterministic contract tests pass.
 
 A stronger claim — `OPENMANUS LIVE PROVIDER CONFORMANCE` — requires an actual pinned-provider specimen and its receipt.
 
+A still stronger claim — `OPENMANUS CONTAINED PROVIDER CONFORMANCE` — requires evidence for the actual sandbox/container/effect boundary used by that occurrence.
+
 Future gates, separately designed:
 
-1. Browser-only worker capability.
-2. Network observation capability.
-3. Credential-bearing provider occurrences.
-4. Remote proposal effects.
-5. Owner-gated remote mutation.
-6. MCP-composed worker organs.
-7. Multi-agent internal delegation with attributable sub-worker receipts.
+1. Contained local compute/mutation worker.
+2. Browser-only worker capability.
+3. Network observation capability.
+4. Credential-bearing provider occurrences.
+5. Remote proposal effects.
+6. Owner-gated remote mutation.
+7. MCP-composed worker organs.
+8. Multi-agent internal delegation with attributable sub-worker receipts.
 
 None are implied by v0.
 
