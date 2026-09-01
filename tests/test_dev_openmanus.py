@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -226,3 +227,20 @@ def test_successful_openmanus_execution_never_mints_semantic_authority(tmp_path:
     assert receipt.semantic_authority is False
     assert receipt.reason is None
     assert len(adapter.provider_receipts) == 1
+
+
+def test_published_openmanus_schemas_match_runtime_contract_names() -> None:
+    repo_root = Path(__file__).parents[1]
+    envelope_schema = json.loads(
+        (repo_root / "schemas" / "openmanus-worker-envelope-v0.schema.json").read_text()
+    )
+    result_schema = json.loads(
+        (repo_root / "schemas" / "openmanus-worker-result-v0.schema.json").read_text()
+    )
+    assert envelope_schema["properties"]["schema"]["const"] == OPENMANUS_ENVELOPE_SCHEMA
+    assert result_schema["properties"]["schema"]["const"] == "loadout.openmanus-worker-result/v0"
+    assert set(envelope_schema["properties"]["effect"]["enum"]) == {
+        "OBSERVE",
+        "LOCAL_COMPUTE",
+        "LOCAL_MUTATE",
+    }
