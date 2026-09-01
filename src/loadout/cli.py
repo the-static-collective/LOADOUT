@@ -11,6 +11,8 @@ from loadout.bind import evaluate_binding
 from loadout.compile import compile_loadout
 from loadout.decay import decay_reasons
 from loadout.delta import record_delta
+from loadout.dev.live_git import resolve_current_organ_from_git
+from loadout.dev.local_git import LocalGitReadAdapter
 from loadout.live_surface import resolve_current_organ
 from loadout.pressure.ablate import ablate_binding, task_reachable
 from loadout.reconstitution import evaluate_reconstitution_threshold, reconstitute_world
@@ -80,6 +82,15 @@ def _parser() -> argparse.ArgumentParser:
     resolve_live.add_argument("evidence")
     resolve_live.add_argument("--path", action="append", default=[])
 
+    resolve_live_git = commands.add_parser(
+        "resolve-live-git",
+        help="Resolve one current-organ occurrence from a local Git repository through the read-only adapter",
+    )
+    resolve_live_git.add_argument("repo_root")
+    resolve_live_git.add_argument("--body-time-id", required=True)
+    resolve_live_git.add_argument("--ref", default="HEAD")
+    resolve_live_git.add_argument("--path", action="append", default=[])
+
     return parser
 
 
@@ -126,6 +137,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         result = resolve_current_organ(
             _read(args.manifest),
             _read(args.evidence),
+            requested_paths=args.path,
+        )
+        _emit(result)
+        return 0 if result["status"] == "RESOLVED" else 2
+    elif args.command == "resolve-live-git":
+        adapter = LocalGitReadAdapter(
+            args.repo_root,
+            body_time_id=args.body_time_id,
+        )
+        result = resolve_current_organ_from_git(
+            adapter,
+            ref=args.ref,
             requested_paths=args.path,
         )
         _emit(result)
