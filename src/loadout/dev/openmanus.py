@@ -21,6 +21,17 @@ _ALLOWED_EFFECTS = frozenset(
         EffectClass.LOCAL_MUTATE,
     }
 )
+_EXPECTED_RESULT_KEYS = frozenset(
+    {
+        "schema",
+        "disposition",
+        "observed_post_state",
+        "artifacts",
+        "observations",
+        "provider_receipt",
+    }
+)
+_EXPECTED_PROVIDER_RECEIPT_KEYS = frozenset({"steps_executed", "termination"})
 
 
 @dataclass(frozen=True)
@@ -140,6 +151,12 @@ class OpenManusJsonStdioAdapter:
                 termination="WRONG_RESULT_SCHEMA",
                 stderr=stderr,
             )
+        if set(value) != _EXPECTED_RESULT_KEYS:
+            return self._record_error(
+                intent,
+                termination="INVALID_RESULT_SHAPE",
+                stderr=stderr,
+            )
         disposition = value.get("disposition")
         if disposition not in {"COMPLETED", "REFUSED", "ERROR"}:
             return self._record_error(
@@ -167,9 +184,20 @@ class OpenManusJsonStdioAdapter:
                 termination="INVALID_RESULT_SHAPE",
                 stderr=stderr,
             )
+        if set(provider_receipt) != _EXPECTED_PROVIDER_RECEIPT_KEYS:
+            return self._record_error(
+                intent,
+                termination="INVALID_PROVIDER_RECEIPT",
+                stderr=stderr,
+            )
         steps = provider_receipt.get("steps_executed")
         termination = provider_receipt.get("termination")
-        if not isinstance(steps, int) or steps < 0 or not isinstance(termination, str):
+        if (
+            isinstance(steps, bool)
+            or not isinstance(steps, int)
+            or steps < 0
+            or not isinstance(termination, str)
+        ):
             return self._record_error(
                 intent,
                 termination="INVALID_PROVIDER_RECEIPT",
