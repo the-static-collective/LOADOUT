@@ -5,7 +5,17 @@ from pathlib import Path
 
 import pytest
 
-from loadout.dev.model import EffectClass, EffectIntent
+from loadout.dev.compiler import compile_world
+from loadout.dev.membrane import invoke_effect
+from loadout.dev.model import (
+    AdapterBody,
+    CapabilityRequest,
+    CapabilitySpec,
+    CompileRequest,
+    EffectClass,
+    EffectIntent,
+    RefusalReason,
+)
 from loadout.dev.openmanus import (
     OPENMANUS_ADAPTER_ID,
     OPENMANUS_ENVELOPE_SCHEMA,
@@ -15,6 +25,16 @@ from loadout.dev.openmanus import (
 UPSTREAM_SHA = "3309bf4e416fb1c74b008f3e86494439a31bad53"
 BODY_ID = f"{OPENMANUS_ADAPTER_ID}@{UPSTREAM_SHA}"
 FAKE_PROVIDER = Path(__file__).parent / "fixtures" / "fake_openmanus_provider.py"
+BODY = AdapterBody(
+    adapter_id=OPENMANUS_ADAPTER_ID,
+    body_time_id=BODY_ID,
+    source_sha=UPSTREAM_SHA,
+    capabilities=(
+        CapabilitySpec("worker.perform", EffectClass.OBSERVE),
+        CapabilitySpec("worker.compute", EffectClass.LOCAL_COMPUTE),
+        CapabilitySpec("worker.mutate", EffectClass.LOCAL_MUTATE),
+    ),
+)
 
 
 def _intent(effect: EffectClass = EffectClass.OBSERVE, **parameters: str) -> EffectIntent:
@@ -35,6 +55,25 @@ def _adapter(tmp_path: Path, **kwargs) -> OpenManusJsonStdioAdapter:
         workspace_root=tmp_path,
         body_time_id=BODY_ID,
         **kwargs,
+    )
+
+
+def _compiled(capability: str, effect: EffectClass):
+    return compile_world(
+        CompileRequest(
+            task_id="OPENMANUS-BIND-001",
+            task_text="bounded worker specimen",
+            cut_targets=frozenset({"workspace:fixture"}),
+            requested_capabilities=(
+                CapabilityRequest(
+                    capability,
+                    effect,
+                    "workspace:fixture",
+                    body_time_id=BODY_ID,
+                ),
+            ),
+            available_bodies=(BODY,),
+        )
     )
 
 
@@ -124,3 +163,66 @@ def test_unsupported_effect_refuses_before_subprocess_launch(
     assert adapter.invoke(_intent(EffectClass.REMOTE_MUTATE)) == ("REFUSE", None)
     assert launched is False
     assert adapter.provider_receipts == ()
+
+
+def test_remote_mutation_binding_is_refused_before_openmanus_launch(tmp_path: Path) -> None:
+    compiled = _compiled("worker.perform", EffectClass.OBSERVE)
+    adapter = _adapter(tmp_path)
+    receipt = invoke_effect(
+        compiled,
+        _intent(EffectClass.REMOTE_MUTATE),
+        {BODY_ID: adapter},
+        current_state="state:0",
+    )
+    assert receipt.reason == RefusalReason.EFFECT_OUTSIDE_FENCE
+    assert adapter.provider_receipts == ()
+
+
+def test_target_outside_cut_is_refused_before_openmanus_launch(tmp_path: Path) -> None:
+    compiled = _compiled("worker.perform", EffectClass.OBSERVE)
+    adapter = _adapter(tmp_path)
+    intent = EffectIntent(
+        "worker.perform",
+        EffectClass.OBSERVE,
+        "workspace:other",
+        BODY_ID,
+        "state:0",
+        "sha256:" + "2" * 64,
+    )
+    receipt = invoke_effect(
+        compiled,
+        intent,
+        {BODY_ID: adapter},
+        current_state="state:0",
+    )
+    assert receipt.reason == RefusalReason.TARGET_OUTSIDE_CUT
+    assert adapter.provider_receipts == ()
+
+
+def test_stale_precondition_is_refused_before_openmanus_launch(tmp_path: Path) -> None:
+    compiled = _compiled("worker.perform", EffectClass.OBSERVE)
+    adapter = _adapter(tmp_path)
+    receipt = invoke_effect(
+        compiled,
+        _intent(),
+        {BODY_ID: adapter},
+        current_state="state:newer",
+    )
+    assert receipt.reason == RefusalReason.STATE_STALE
+    assert adapter.provider_receipts == ()
+
+
+def test_successful_openmanus_execution_never_mints_semantic_authority(tmp_path: Path) -> None:
+    compiled = _compiled("worker.perform", EffectClass.OBSERVE)
+    adapter = _adapter(tmp_path)
+    receipt = invoke_effect(
+        compiled,
+        _intent(),
+        {BODY_ID: adapter},
+        current_state="state:0",
+    )
+    assert receipt.provider_disposition == "COMPLETED"
+    assert receipt.observed_post_state == "state:1"
+    assert receipt.semantic_authority is False
+    assert receipt.reason is None
+    assert len(adapter.provider_receipts) == 1
