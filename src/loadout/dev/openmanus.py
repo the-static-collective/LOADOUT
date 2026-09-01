@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from pathlib import Path
 import re
+import subprocess
 from typing import Mapping, Sequence
 
 from loadout.dev.model import EffectClass, EffectIntent, parameter_map
@@ -91,3 +93,153 @@ class OpenManusJsonStdioAdapter:
             "workspace_root": str(self.workspace_root),
             "max_steps": self.max_steps,
         }
+
+    def _record_error(
+        self,
+        intent: EffectIntent,
+        *,
+        termination: str,
+        stderr: str = "",
+    ) -> tuple[str, None]:
+        self._provider_receipts.append(
+            OpenManusProviderReceipt(
+                body_time_id=self.body_time_id,
+                capability=intent.capability,
+                effect=intent.effect,
+                target=intent.target,
+                precondition_state=intent.precondition_state,
+                disposition="ERROR",
+                observed_post_state=None,
+                artifacts=(),
+                observations=(),
+                steps_executed=0,
+                termination=termination,
+                stderr=stderr,
+            )
+        )
+        return "ERROR", None
+
+    def _parse_result(
+        self,
+        intent: EffectIntent,
+        stdout: str,
+        stderr: str,
+    ) -> tuple[str, str | None]:
+        stripped = stdout.strip()
+        try:
+            value = json.loads(stripped)
+        except (json.JSONDecodeError, TypeError):
+            return self._record_error(
+                intent,
+                termination="MALFORMED_RESULT",
+                stderr=stderr,
+            )
+        if not isinstance(value, dict) or value.get("schema") != OPENMANUS_RESULT_SCHEMA:
+            return self._record_error(
+                intent,
+                termination="WRONG_RESULT_SCHEMA",
+                stderr=stderr,
+            )
+        disposition = value.get("disposition")
+        if disposition not in {"COMPLETED", "REFUSED", "ERROR"}:
+            return self._record_error(
+                intent,
+                termination="INVALID_DISPOSITION",
+                stderr=stderr,
+            )
+        post_state = value.get("observed_post_state")
+        if post_state is not None and not isinstance(post_state, str):
+            return self._record_error(
+                intent,
+                termination="INVALID_POST_STATE",
+                stderr=stderr,
+            )
+        artifacts = value.get("artifacts")
+        observations = value.get("observations")
+        provider_receipt = value.get("provider_receipt")
+        if (
+            not isinstance(artifacts, list)
+            or not isinstance(observations, list)
+            or not isinstance(provider_receipt, dict)
+        ):
+            return self._record_error(
+                intent,
+                termination="INVALID_RESULT_SHAPE",
+                stderr=stderr,
+            )
+        steps = provider_receipt.get("steps_executed")
+        termination = provider_receipt.get("termination")
+        if not isinstance(steps, int) or steps < 0 or not isinstance(termination, str):
+            return self._record_error(
+                intent,
+                termination="INVALID_PROVIDER_RECEIPT",
+                stderr=stderr,
+            )
+        self._provider_receipts.append(
+            OpenManusProviderReceipt(
+                body_time_id=self.body_time_id,
+                capability=intent.capability,
+                effect=intent.effect,
+                target=intent.target,
+                precondition_state=intent.precondition_state,
+                disposition=disposition,
+                observed_post_state=post_state,
+                artifacts=tuple(artifacts),
+                observations=tuple(observations),
+                steps_executed=steps,
+                termination=termination,
+                stderr=stderr,
+            )
+        )
+        return disposition, post_state
+
+    def invoke(self, intent: EffectIntent) -> tuple[str, str | None]:
+        if intent.effect not in _ALLOWED_EFFECTS:
+            return "REFUSE", None
+        if intent.body_time_id != self.body_time_id:
+            return "REFUSE", None
+        try:
+            envelope = self._build_envelope(intent)
+        except ValueError:
+            return "REFUSE", None
+        payload = json.dumps(envelope, sort_keys=True, separators=(",", ":"))
+        try:
+            completed = subprocess.run(
+                list(self.provider_command),
+                input=payload,
+                text=True,
+                check=False,
+                capture_output=True,
+                env=dict(self.child_env),
+                shell=False,
+                timeout=self.timeout_seconds,
+            )
+        except subprocess.TimeoutExpired as error:
+            stderr = error.stderr if isinstance(error.stderr, str) else ""
+            return self._record_error(
+                intent,
+                termination="TIMEOUT",
+                stderr=stderr,
+            )
+        except (FileNotFoundError, OSError) as error:
+            return self._record_error(
+                intent,
+                termination="PROVIDER_UNAVAILABLE",
+                stderr=str(error),
+            )
+        if completed.returncode != 0:
+            return self._record_error(
+                intent,
+                termination=f"EXIT_{completed.returncode}",
+                stderr=completed.stderr,
+            )
+        return self._parse_result(intent, completed.stdout, completed.stderr)
+
+
+__all__ = [
+    "OPENMANUS_ADAPTER_ID",
+    "OPENMANUS_ENVELOPE_SCHEMA",
+    "OPENMANUS_RESULT_SCHEMA",
+    "OpenManusJsonStdioAdapter",
+    "OpenManusProviderReceipt",
+]
