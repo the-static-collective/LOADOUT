@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "loadout.openmanus-worker-envelope/v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "body_time_id",
+    "capability",
+    "effect",
+    "target",
+    "precondition_state",
+    "parameters_digest",
+    "parameters",
+    "workspace_root",
+    "max_steps"
+  ],
+  "properties": {
+    "schema": {"const": "loadout.openmanus-worker-envelope/v0"},
+    "body_time_id": {"type": "string"},
+    "capability": {"type": "string", "minLength": 1},
+    "effect": {"enum": ["OBSERVE", "LOCAL_COMPUTE", "LOCAL_MUTATE"]},
+    "target": {"type": "string", "minLength": 1},
+    "precondition_state": {"type": "string", "minLength": 1},
+    "parameters_digest": {"type": "string", "minLength": 1},
+    "parameters": {
+      "type": "object",
+      "additionalProperties": {"type": "string"}
+    },
+    "workspace_root": {"type": "string", "minLength": 1},
+    "max_steps": {"type": "integer", "minimum": 1}
+  }
+}
