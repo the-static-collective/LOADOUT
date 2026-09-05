@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import subprocess
 from typing import Mapping, Sequence
@@ -88,9 +88,26 @@ class OpenManusJsonStdioAdapter:
     def provider_receipts(self) -> tuple[OpenManusProviderReceipt, ...]:
         return tuple(self._provider_receipts)
 
+    def _validate_target(self, target: str) -> None:
+        prefix = "workspace:"
+        if not isinstance(target, str) or not target.startswith(prefix):
+            raise ValueError("invalid OpenManus workspace target")
+        suffix = target[len(prefix) :]
+        if not suffix or "\\" in suffix:
+            raise ValueError("invalid OpenManus workspace target")
+        relative = PurePosixPath(suffix)
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("invalid OpenManus workspace target")
+        resolved = (self.workspace_root / Path(*relative.parts)).resolve()
+        try:
+            resolved.relative_to(self.workspace_root)
+        except ValueError as error:
+            raise ValueError("OpenManus target outside workspace") from error
+
     def _build_envelope(self, intent: EffectIntent) -> dict[str, object]:
         if intent.effect not in _ALLOWED_EFFECTS:
             raise ValueError("unsupported OpenManus effect")
+        self._validate_target(intent.target)
         params = parameter_map(intent)
         return {
             "schema": OPENMANUS_ENVELOPE_SCHEMA,
