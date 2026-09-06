@@ -40,3 +40,40 @@ def test_workspace_traversal_target_refuses_before_provider_launch(
     assert adapter.invoke(intent) == ("REFUSE", None)
     assert launched is False
     assert adapter.provider_receipts == ()
+
+
+def test_workspace_symlink_escape_refuses_before_provider_launch(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workspace = tmp_path / "workspace"
+    outside = tmp_path / "outside"
+    workspace.mkdir()
+    outside.mkdir()
+    (workspace / "escape").symlink_to(outside, target_is_directory=True)
+
+    adapter = OpenManusJsonStdioAdapter(
+        provider_command=(sys.executable, "-c", "pass"),
+        workspace_root=workspace,
+        body_time_id=BODY_ID,
+    )
+    intent = EffectIntent(
+        capability="worker.perform",
+        effect=EffectClass.OBSERVE,
+        target="workspace:escape/payload.txt",
+        body_time_id=BODY_ID,
+        precondition_state="state:0",
+        parameters_digest="sha256:" + "2" * 64,
+        parameters=(("request", "inspect the target"),),
+    )
+    launched = False
+
+    def fail_if_called(*args, **kwargs):
+        nonlocal launched
+        launched = True
+        raise AssertionError("provider must not launch through an escaping workspace symlink")
+
+    monkeypatch.setattr("loadout.dev.openmanus.subprocess.run", fail_if_called)
+
+    assert adapter.invoke(intent) == ("REFUSE", None)
+    assert launched is False
+    assert adapter.provider_receipts == ()
