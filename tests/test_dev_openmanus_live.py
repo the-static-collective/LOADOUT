@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import subprocess
 
+import pytest
+
+from loadout.dev.model import EffectClass
+from loadout.dev.openmanus import OpenManusProviderReceipt
 from loadout.dev.openmanus_live import (
     LIVE_BUNDLE_SCHEMA,
     PINNED_BODY_ID,
@@ -11,6 +16,10 @@ from loadout.dev.openmanus_live import (
     SPECIMEN_INPUT_PATH,
     SPECIMEN_OUTPUT_BYTES,
     SPECIMEN_OUTPUT_PATH,
+    build_child_env,
+    provider_tracked_tree_clean,
+    resolve_git_head,
+    safe_provider_receipt,
     snapshot_workspace,
     verify_live_bundle,
     workspace_state_id,
@@ -122,7 +131,6 @@ def test_verifier_rejects_wrong_output(tmp_path: Path) -> None:
     bundle = _load_bundle(bundle_path)
     bundle["after"] = snapshot_workspace(workspace)
     _save_bundle(bundle_path, bundle)
-
     passed, reasons = verify_live_bundle(bundle_path, workspace)
     assert passed is False
     assert "WRONG_OUTPUT" in reasons
@@ -134,7 +142,6 @@ def test_verifier_rejects_modified_input(tmp_path: Path) -> None:
     bundle = _load_bundle(bundle_path)
     bundle["after"] = snapshot_workspace(workspace)
     _save_bundle(bundle_path, bundle)
-
     passed, reasons = verify_live_bundle(bundle_path, workspace)
     assert passed is False
     assert "WRONG_INPUT" in reasons
@@ -146,7 +153,6 @@ def test_verifier_rejects_unexpected_workspace_delta(tmp_path: Path) -> None:
     bundle = _load_bundle(bundle_path)
     bundle["after"] = snapshot_workspace(workspace)
     _save_bundle(bundle_path, bundle)
-
     passed, reasons = verify_live_bundle(bundle_path, workspace)
     assert passed is False
     assert "UNEXPECTED_DELTA" in reasons
@@ -159,7 +165,6 @@ def test_verifier_rejects_wrong_provider_pin(tmp_path: Path) -> None:
     assert isinstance(provider, dict)
     provider["checkout_sha"] = "2" * 40
     _save_bundle(bundle_path, bundle)
-
     passed, reasons = verify_live_bundle(bundle_path, workspace)
     assert passed is False
     assert "PIN_MISMATCH" in reasons
@@ -172,7 +177,6 @@ def test_verifier_rejects_provider_not_completed(tmp_path: Path) -> None:
     assert isinstance(provider_receipt, dict)
     provider_receipt["disposition"] = "REFUSED"
     _save_bundle(bundle_path, bundle)
-
     passed, reasons = verify_live_bundle(bundle_path, workspace)
     assert passed is False
     assert "PROVIDER_NOT_COMPLETED" in reasons
@@ -185,7 +189,6 @@ def test_verifier_rejects_semantic_authority(tmp_path: Path) -> None:
     assert isinstance(effect_receipt, dict)
     effect_receipt["semantic_authority"] = True
     _save_bundle(bundle_path, bundle)
-
     passed, reasons = verify_live_bundle(bundle_path, workspace)
     assert passed is False
     assert "SEMANTIC_AUTHORITY_WIDENED" in reasons
@@ -198,7 +201,102 @@ def test_verifier_rejects_bundle_snapshot_disagreement(tmp_path: Path) -> None:
     assert isinstance(after, dict)
     after[SPECIMEN_OUTPUT_PATH] = "sha256:" + "f" * 64
     _save_bundle(bundle_path, bundle)
-
     passed, reasons = verify_live_bundle(bundle_path, workspace)
     assert passed is False
     assert "SNAPSHOT_MISMATCH" in reasons
+
+
+def _init_git_repo(tmp_path: Path) -> Path:
+    repo = tmp_path / "provider"
+    repo.mkdir()
+    subprocess.run(["git", "init", str(repo)], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.email", "test@example.com"], check=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.name", "Test"], check=True)
+    (repo / "tracked.txt").write_text("tracked", encoding="utf-8")
+    subprocess.run(["git", "-C", str(repo), "add", "tracked.txt"], check=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"], check=True, capture_output=True)
+    return repo
+
+
+def test_resolve_git_head_returns_lowercase_sha40(tmp_path: Path) -> None:
+    repo = _init_git_repo(tmp_path)
+    head = resolve_git_head(repo)
+    assert len(head) == 40
+    assert head == head.lower()
+    assert all(char in "0123456789abcdef" for char in head)
+
+
+def test_provider_tracked_tree_clean_rejects_modified_tracked_file(tmp_path: Path) -> None:
+    repo = _init_git_repo(tmp_path)
+    (repo / "tracked.txt").write_text("changed", encoding="utf-8")
+    assert provider_tracked_tree_clean(repo) is False
+
+
+def test_provider_tracked_tree_clean_allows_untracked_config_file(tmp_path: Path) -> None:
+    repo = _init_git_repo(tmp_path)
+    config = repo / "config"
+    config.mkdir()
+    (config / "config.toml").write_text("secret = 'local-only'", encoding="utf-8")
+    assert provider_tracked_tree_clean(repo) is True
+
+
+def test_child_env_contains_only_pythonpath_and_forwarded_names(tmp_path: Path) -> None:
+    checkout = tmp_path / "provider"
+    checkout.mkdir()
+    source = {
+        "HTTPS_PROXY": "http://proxy.example",
+        "HOME": "/secret/home",
+        "PATH": "/secret/path",
+        "API_KEY": "do-not-forward",
+    }
+    assert build_child_env(checkout, ("HTTPS_PROXY",), source) == {
+        "PYTHONPATH": str(checkout.resolve()),
+        "HTTPS_PROXY": "http://proxy.example",
+    }
+
+
+def test_child_env_refuses_missing_forwarded_name(tmp_path: Path) -> None:
+    checkout = tmp_path / "provider"
+    checkout.mkdir()
+    with pytest.raises(ValueError, match="missing explicit environment variable"):
+        build_child_env(checkout, ("MISSING",), {})
+
+
+def test_safe_provider_receipt_drops_free_form_content_and_stderr() -> None:
+    secret = "sk-super-secret-value"
+    receipt = OpenManusProviderReceipt(
+        body_time_id=PINNED_BODY_ID,
+        capability="worker.mutate",
+        effect=EffectClass.LOCAL_MUTATE,
+        target="workspace:specimen",
+        precondition_state="workspace-state:sha256:" + "1" * 64,
+        disposition="COMPLETED",
+        observed_post_state="state:1",
+        artifacts=({"path": SPECIMEN_OUTPUT_PATH, "content": secret},),
+        observations=(
+            {"tool": "loadout_read_text", "content": secret},
+            {"tool": "loadout_write_text", "relative_path": SPECIMEN_OUTPUT_PATH},
+        ),
+        steps_executed=2,
+        termination="TERMINATE",
+        stderr=f"provider diagnostic {secret}",
+    )
+
+    safe = safe_provider_receipt(receipt)
+
+    assert safe == {
+        "body_time_id": PINNED_BODY_ID,
+        "capability": "worker.mutate",
+        "effect": "LOCAL_MUTATE",
+        "target": "workspace:specimen",
+        "precondition_state": "workspace-state:sha256:" + "1" * 64,
+        "disposition": "COMPLETED",
+        "observed_post_state": "state:1",
+        "artifact_paths": [SPECIMEN_OUTPUT_PATH],
+        "observation_tools": ["loadout_read_text", "loadout_write_text"],
+        "steps_executed": 2,
+        "termination": "TERMINATE",
+        "stderr_present": True,
+    }
+    serialized = json.dumps(safe, sort_keys=True)
+    assert secret not in serialized
