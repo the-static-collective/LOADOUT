@@ -2,26 +2,29 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a credential-free, TDD-proven live-specimen harness that can run the exact pinned OpenManus body through the existing LOADOUT membrane inside a STATIC-NODE child, independently verify the resulting filesystem/receipt evidence, and stop at HOLD.
+**Goal:** Build a credential-free, TDD-proven harness that can run the exact pinned OpenManus body through the existing LOADOUT membrane inside a STATIC-NODE child, independently verify the resulting filesystem and receipt evidence, and stop at HOLD.
 
-**Architecture:** LOADOUT remains provider-constituting authority and OpenManus remains a bounded subprocess worker behind the existing JSON-stdio adapter. A new stdlib-only specimen module owns fixed fixture content, pinned-provider identity checks, workspace snapshots, receipt-bundle serialization, and independent verification; two thin operator scripts expose build and verify commands that STATIC-NODE can call without creating a production dependency between repositories.
+**Architecture:** LOADOUT remains the provider-constituting authority and OpenManus remains a bounded JSON-stdio subprocess worker. A new stdlib-only specimen module freezes one banal `LOCAL_MUTATE` task, verifies the exact provider Git body before launch, snapshots the declared workspace, emits a credential-safe receipt projection, and independently verifies the resulting delta. Two thin scripts expose build and verify commands that STATIC-NODE can invoke without introducing a production dependency between LOADOUT and TranchNode.
 
-**Tech Stack:** Python >=3.11 standard library, existing `loadout.dev` compiler/membrane/OpenManus adapter, pytest >=8 for tests, Git CLI for exact checkout identity, JSON receipt bundles, existing `contrib/openmanus/worker.py` for the genuine provider occurrence.
+**Tech Stack:** Python >=3.11 standard library, existing `loadout.dev` compiler/membrane/OpenManus adapter, pytest >=8, Git CLI, JSON bundles, existing `contrib/openmanus/worker.py` for the genuine provider occurrence.
 
 **Spec:** `docs/superpowers/specs/2026-09-16-openmanus-live-001-design.md`
 
 ## Global Constraints
 
-- Exact OpenManus source pin: `FoundationAgents/OpenManus@3309bf4e416fb1c74b008f3e86494439a31bad53`.
-- First live effect is exactly `LOCAL_MUTATE`; do not add any new `EffectClass` or widen the OpenManus adapter allowlist.
-- Provider-side tools remain `loadout_read_text`, `loadout_calculate`, `loadout_write_text`, and `Terminate`; do not expose browser, shell, native Python execution, native editor, generic MCP, Git write, remote mutation, publication, merge, landing, credential discovery, or multi-agent delegation.
-- LOADOUT production dependencies remain empty; all new production code is Python standard-library-only.
-- Child environment is explicit allowlist only; never inherit `os.environ` wholesale.
-- Credential values never enter committed files, stdout fixtures, bundle JSON, provider receipts, effect receipts, or test snapshots.
-- Receipt/output directory must be outside the provider workspace so receipt writes cannot masquerade as provider workspace delta.
+- Exact provider pin: `FoundationAgents/OpenManus@3309bf4e416fb1c74b008f3e86494439a31bad53`.
+- Exact live effect: `LOCAL_MUTATE` only.
+- Do not add or widen `EffectClass`, `OwnerGate`, membrane semantics, or the OpenManus adapter allowlist.
+- Provider tools remain `loadout_read_text`, `loadout_calculate`, `loadout_write_text`, and `Terminate` only.
+- No browser, shell, native Python tool, native editor, generic MCP, Git write, remote mutation, publication, merge, landing, credential discovery, scheduler, autonomous retry/repair, or promotion path.
+- LOADOUT production dependencies remain empty.
+- Child environment is explicit allowlist only; never inherit the whole parent environment.
+- The provider checkout may contain an untracked `config/config.toml`, but tracked provider source must be clean at the exact pinned HEAD.
+- LOADOUT must not read or serialize credential values from OpenManus configuration. Durable receipt output therefore stores a safe structural projection of free-form provider testimony rather than raw stderr or file contents.
+- Receipt output must be outside the provider workspace.
 - `OpenManusProviderReceipt != EffectReceipt != STATIC-NODE receipt/Workmark`.
-- `GREEN CHILD != PROMOTED CHILD`; this plan adds no promotion, merge, publication, scheduler, retry/repair loop, or daemon path.
-- Live OpenManus execution remains an explicit operator action. Ordinary CI remains credential-free and uses a fake live provider.
+- `GREEN CHILD != PROMOTED CHILD`.
+- Ordinary CI remains credential-free and does not require OpenManus installed.
 
 ---
 
@@ -29,19 +32,19 @@
 
 Create:
 
-- `src/loadout/dev/openmanus_live.py` — fixed specimen contract, provider/check-out identity checks, explicit environment construction, workspace snapshots, live invocation, bundle serialization, and independent bundle/workspace verification.
-- `scripts/openmanus-live-001.py` — thin operator-facing build command for the live/fake provider occurrence.
-- `scripts/verify-openmanus-live-001.py` — thin independent verify command intended to be passed directly to STATIC-NODE.
-- `tests/fixtures/fake_openmanus_live_provider.py` — deterministic JSON-stdio provider that performs the exact fixture mutation and can deliberately create hostile deltas/results.
-- `tests/test_dev_openmanus_live.py` — unit/contract tests for pinning, env discipline, secret redaction, workspace deltas, receipt identity, and verifier behavior.
-- `tests/test_openmanus_live_scripts.py` — subprocess-level proof that build/verify scripts compose using the fake provider without credentials.
-- `evals/OPENMANUS-LIVE-001.md` — durable gate/field-receipt document; starts at `HARNESS PASS · LIVE PROVIDER NOT RUN` and records the exact human-run command/receipt only after a real occurrence.
+- `src/loadout/dev/openmanus_live.py` — fixed specimen constants, provider identity checks, explicit child environment, workspace snapshots, live invocation, safe receipt projection, bundle serialization, and independent verification.
+- `scripts/openmanus-live-001.py` — operator-facing build command.
+- `scripts/verify-openmanus-live-001.py` — independent verify command for STATIC-NODE.
+- `tests/fixtures/fake_openmanus_live_provider.py` — deterministic JSON-stdio provider with argv-selected hostile modes.
+- `tests/test_dev_openmanus_live.py` — contract tests.
+- `tests/test_openmanus_live_scripts.py` — subprocess CLI tests.
+- `evals/OPENMANUS-LIVE-001.md` — durable gate document, initially `HARNESS PASS · LIVE PROVIDER NOT RUN`.
 
 Modify:
 
-- `README.md` — document the opt-in live specimen command, its non-claims, and STATIC-NODE composition example.
+- `README.md` — operator and STATIC-NODE composition instructions.
 
-Do not modify unless a failing test proves an invariant is missing:
+Do not modify unless a failing test proves a missing invariant:
 
 - `src/loadout/dev/model.py`
 - `src/loadout/dev/compiler.py`
@@ -49,18 +52,18 @@ Do not modify unless a failing test proves an invariant is missing:
 - `src/loadout/dev/openmanus.py`
 - `contrib/openmanus/worker.py`
 
-No new JSON schema file is planned for the specimen bundle in v0. The strict parser in `openmanus_live.py` freezes the bundle key set; adding a published schema is a later compatibility decision, not required to prove this occurrence.
+No new published JSON schema is required for this first specimen. The strict parser in `openmanus_live.py` freezes the bundle shape.
 
 ---
 
-### Task 1: Freeze the specimen contract and independent workspace verifier
+### Task 1: Freeze the specimen and independent verifier
 
 **Files:**
 - Create: `src/loadout/dev/openmanus_live.py`
 - Create: `tests/test_dev_openmanus_live.py`
 
 **Interfaces:**
-- Consumes: `EffectClass`, `OpenManusProviderReceipt`, existing SHA/body-id constants from `loadout.dev.openmanus`.
+- Consumes: `OPENMANUS_ADAPTER_ID` from `loadout.dev.openmanus`.
 - Produces:
   - `PINNED_OPENMANUS_SHA: str`
   - `PINNED_BODY_ID: str`
@@ -73,9 +76,9 @@ No new JSON schema file is planned for the specimen bundle in v0. The strict par
   - `workspace_state_id(snapshot: Mapping[str, str]) -> str`
   - `verify_live_bundle(bundle_path: Path, workspace_root: Path) -> tuple[bool, tuple[str, ...]]`
 
-- [ ] **Step 1: Write failing tests for the frozen fixture and workspace snapshot**
+- [ ] **Step 1: Write the initial failing tests**
 
-Add tests equivalent to:
+Create `tests/test_dev_openmanus_live.py` with:
 
 ```python
 from pathlib import Path
@@ -90,7 +93,14 @@ from loadout.dev.openmanus_live import (
 )
 
 
-def test_snapshot_is_content_addressed_and_path_sorted(tmp_path: Path) -> None:
+def test_frozen_specimen_contract() -> None:
+    assert SPECIMEN_INPUT_PATH == "specimen/input.txt"
+    assert SPECIMEN_OUTPUT_PATH == "specimen/output.txt"
+    assert SPECIMEN_INPUT_BYTES == b"OPENMANUS-LIVE-001 INPUT\n"
+    assert SPECIMEN_OUTPUT_BYTES == b"OPENMANUS-LIVE-001 OUTPUT\n"
+
+
+def test_snapshot_is_stable_and_content_addressed(tmp_path: Path) -> None:
     (tmp_path / "z.txt").write_bytes(b"z")
     (tmp_path / "a.txt").write_bytes(b"a")
     first = snapshot_workspace(tmp_path)
@@ -98,28 +108,19 @@ def test_snapshot_is_content_addressed_and_path_sorted(tmp_path: Path) -> None:
     assert list(first) == ["a.txt", "z.txt"]
     assert first == second
     assert workspace_state_id(first).startswith("workspace-state:sha256:")
-
-
-def test_frozen_specimen_is_banal_and_exact() -> None:
-    assert SPECIMEN_INPUT_PATH == "specimen/input.txt"
-    assert SPECIMEN_OUTPUT_PATH == "specimen/output.txt"
-    assert SPECIMEN_INPUT_BYTES == b"OPENMANUS-LIVE-001 INPUT\n"
-    assert SPECIMEN_OUTPUT_BYTES == b"OPENMANUS-LIVE-001 OUTPUT\n"
 ```
 
-- [ ] **Step 2: Run the focused tests and confirm RED**
-
-Run:
+- [ ] **Step 2: Run the focused tests and observe RED**
 
 ```bash
 pytest -q tests/test_dev_openmanus_live.py
 ```
 
-Expected: collection/import failure because `loadout.dev.openmanus_live` does not exist.
+Expected: import/collection failure because the module does not exist.
 
-- [ ] **Step 3: Implement the minimal specimen constants and snapshot functions**
+- [ ] **Step 3: Implement the frozen constants and snapshot functions**
 
-Create `src/loadout/dev/openmanus_live.py` with these exact constants and behavior:
+Create `src/loadout/dev/openmanus_live.py` with:
 
 ```python
 from __future__ import annotations
@@ -138,7 +139,6 @@ SPECIMEN_INPUT_PATH = "specimen/input.txt"
 SPECIMEN_OUTPUT_PATH = "specimen/output.txt"
 SPECIMEN_INPUT_BYTES = b"OPENMANUS-LIVE-001 INPUT\n"
 SPECIMEN_OUTPUT_BYTES = b"OPENMANUS-LIVE-001 OUTPUT\n"
-_ALLOWED_SPECIMEN_PATHS = frozenset({SPECIMEN_INPUT_PATH, SPECIMEN_OUTPUT_PATH})
 
 
 def _sha256(data: bytes) -> str:
@@ -146,91 +146,86 @@ def _sha256(data: bytes) -> str:
 
 
 def snapshot_workspace(root: Path) -> dict[str, str]:
-    resolved = root.resolve()
-    if not resolved.is_dir():
+    root = root.resolve()
+    if not root.is_dir():
         raise ValueError("workspace root must exist")
     result: dict[str, str] = {}
-    for path in sorted(p for p in resolved.rglob("*") if p.is_file()):
-        relative = path.relative_to(resolved).as_posix()
-        result[relative] = _sha256(path.read_bytes())
+    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+        result[path.relative_to(root).as_posix()] = _sha256(path.read_bytes())
     return result
 
 
 def workspace_state_id(snapshot: Mapping[str, str]) -> str:
-    payload = json.dumps(dict(sorted(snapshot.items())), sort_keys=True, separators=(",", ":")).encode()
+    payload = json.dumps(
+        dict(sorted(snapshot.items())), sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
     return "workspace-state:" + _sha256(payload)
 ```
 
-- [ ] **Step 4: Add failing independent-verifier tests**
+- [ ] **Step 4: Write failing verifier tests**
 
-Construct a minimal bundle fixture with a strict top-level shape:
+Add helper fixtures that write a strict bundle with top-level keys exactly:
 
 ```python
 {
-    "schema": LIVE_BUNDLE_SCHEMA,
-    "provider": {
-        "checkout_sha": PINNED_OPENMANUS_SHA,
-        "body_time_id": PINNED_BODY_ID,
-        "model_config_class": "test/fake",
-    },
-    "specimen": {
-        "effect": "LOCAL_MUTATE",
-        "target": "workspace:specimen",
-        "input_path": SPECIMEN_INPUT_PATH,
-        "output_path": SPECIMEN_OUTPUT_PATH,
-    },
-    "before": {...},
-    "after": {...},
-    "provider_receipt": {...},
-    "effect_receipt": {...},
-    "runtime": {...},
+    "schema": "loadout.openmanus-live-001/v0",
+    "provider": {},
+    "specimen": {},
+    "before": {},
+    "after": {},
+    "provider_receipt": {},
+    "effect_receipt": {},
+    "runtime": {},
 }
 ```
 
-Add tests proving `verify_live_bundle()`:
+Add these exact test names:
 
 ```python
-def test_verifier_accepts_exact_expected_mutation(...): ...
-def test_verifier_rejects_wrong_output_bytes(...): ...
-def test_verifier_rejects_modified_input(...): ...
-def test_verifier_rejects_unexpected_workspace_path(...): ...
-def test_verifier_rejects_wrong_provider_pin(...): ...
-def test_verifier_rejects_provider_not_completed(...): ...
-def test_verifier_rejects_semantic_authority_true(...): ...
-def test_verifier_rejects_missing_or_extra_bundle_keys(...): ...
-def test_verifier_rejects_bundle_snapshot_that_disagrees_with_filesystem(...): ...
+def test_verifier_accepts_exact_expected_mutation(tmp_path: Path) -> None: ...
+def test_verifier_rejects_wrong_output(tmp_path: Path) -> None: ...
+def test_verifier_rejects_modified_input(tmp_path: Path) -> None: ...
+def test_verifier_rejects_unexpected_workspace_delta(tmp_path: Path) -> None: ...
+def test_verifier_rejects_wrong_provider_pin(tmp_path: Path) -> None: ...
+def test_verifier_rejects_provider_not_completed(tmp_path: Path) -> None: ...
+def test_verifier_rejects_semantic_authority(tmp_path: Path) -> None: ...
+def test_verifier_rejects_bundle_snapshot_disagreement(tmp_path: Path) -> None: ...
 ```
 
-The successful fixture must contain exactly one new path, `specimen/output.txt`, while `specimen/input.txt` remains byte-identical.
+Each test must build concrete fixture JSON; do not mock `verify_live_bundle()`.
 
-- [ ] **Step 5: Run the verifier tests and confirm RED**
-
-Run:
+- [ ] **Step 5: Run verifier tests and observe RED**
 
 ```bash
 pytest -q tests/test_dev_openmanus_live.py -k verifier
 ```
 
-Expected: failures because `verify_live_bundle` is absent.
+Expected: failures because `verify_live_bundle` is not implemented.
 
 - [ ] **Step 6: Implement strict independent verification**
 
-Implement `verify_live_bundle(bundle_path, workspace_root)` so it:
+`verify_live_bundle()` must re-read the workspace and enforce:
 
-1. parses exactly one JSON object;
-2. requires the exact top-level key set shown above;
-3. requires `schema == LIVE_BUNDLE_SCHEMA`;
-4. requires `provider.checkout_sha == PINNED_OPENMANUS_SHA` and `provider.body_time_id == PINNED_BODY_ID`;
-5. requires specimen `effect == "LOCAL_MUTATE"`, `target == "workspace:specimen"`, and the frozen input/output paths;
-6. re-reads the current filesystem instead of trusting the bundle's `after` map;
-7. requires input bytes exactly `SPECIMEN_INPUT_BYTES` and output bytes exactly `SPECIMEN_OUTPUT_BYTES`;
-8. requires the only before->after changed/new path to be `SPECIMEN_OUTPUT_PATH`;
-9. requires `provider_receipt.disposition == "COMPLETED"` and `provider_receipt.body_time_id == PINNED_BODY_ID`;
-10. requires `provider_receipt.steps_executed` to be an integer in `0..max_steps` where `max_steps` is recorded in `runtime`;
-11. requires `effect_receipt.provider_disposition == "COMPLETED"` and `effect_receipt.semantic_authority is False`;
-12. returns `(False, tuple_of_machine_readable_reasons)` for evidence failure rather than raising, while malformed/unreadable invocation arguments may raise `ValueError`.
+```text
+schema == loadout.openmanus-live-001/v0
+provider.checkout_sha == 3309bf4e416fb1c74b008f3e86494439a31bad53
+provider.body_time_id == openmanus.worker.json-stdio/v0@3309bf4e416fb1c74b008f3e86494439a31bad53
+specimen.effect == LOCAL_MUTATE
+specimen.target == workspace:specimen
+specimen.input_path == specimen/input.txt
+specimen.output_path == specimen/output.txt
+input bytes == OPENMANUS-LIVE-001 INPUT\n
+output bytes == OPENMANUS-LIVE-001 OUTPUT\n
+only before->after changed/new path == specimen/output.txt
+provider_receipt.disposition == COMPLETED
+provider_receipt.body_time_id == PINNED_BODY_ID
+0 <= provider_receipt.steps_executed <= runtime.max_steps
+effect_receipt.provider_disposition == COMPLETED
+effect_receipt.semantic_authority is false
+bundle.after == freshly observed snapshot
+```
 
-Use stable reason strings such as:
+Return stable reason strings rather than provider prose:
 
 ```text
 WRONG_SCHEMA
@@ -242,15 +237,13 @@ WRONG_OUTPUT
 UNEXPECTED_DELTA
 PROVIDER_NOT_COMPLETED
 PROVIDER_RECEIPT_IDENTITY_MISMATCH
+INVALID_STEP_COUNT
 EFFECT_RECEIPT_NOT_COMPLETED
 SEMANTIC_AUTHORITY_WIDENED
 SNAPSHOT_MISMATCH
-INVALID_STEP_COUNT
 ```
 
-- [ ] **Step 7: Run focused tests and confirm GREEN**
-
-Run:
+- [ ] **Step 7: Run Task 1 tests and observe GREEN**
 
 ```bash
 pytest -q tests/test_dev_openmanus_live.py
@@ -267,104 +260,93 @@ git commit -m "test: freeze OPENMANUS-LIVE-001 verification contract"
 
 ---
 
-### Task 2: Add exact provider identity, explicit environment, and live bundle construction
+### Task 2: Prove provider identity, environment discipline, and safe receipt serialization
 
 **Files:**
 - Modify: `src/loadout/dev/openmanus_live.py`
 - Modify: `tests/test_dev_openmanus_live.py`
-- Create: `tests/fixtures/fake_openmanus_live_provider.py`
 
 **Interfaces:**
-- Consumes: Task 1 constants/snapshot/verifier plus existing `compile_world()`, `invoke_effect()`, `AdapterBody`, `CapabilityRequest`, `CapabilitySpec`, `CompileRequest`, `EffectClass`, `EffectIntent`, and `OpenManusJsonStdioAdapter`.
 - Produces:
   - `resolve_git_head(repo: Path) -> str`
+  - `provider_tracked_tree_clean(repo: Path) -> bool`
   - `build_child_env(provider_checkout: Path, forwarded_names: tuple[str, ...], source_env: Mapping[str, str]) -> dict[str, str]`
-  - `run_live_specimen(*, provider_checkout: Path, provider_command: tuple[str, ...], workspace_root: Path, output_dir: Path, model_config_class: str, forwarded_env_names: tuple[str, ...], source_env: Mapping[str, str], timeout_seconds: float = 30.0, max_steps: int = 20) -> Path`
+  - `safe_provider_receipt(receipt: OpenManusProviderReceipt) -> dict[str, object]`
 
-- [ ] **Step 1: Write RED tests for provider pin and output/workspace separation**
+- [ ] **Step 1: Write RED provider-identity tests**
+
+Add tests that initialize temporary Git repositories and assert:
+
+```python
+def test_resolve_git_head_returns_lowercase_sha40(tmp_path: Path) -> None: ...
+def test_provider_tracked_tree_clean_rejects_modified_tracked_file(tmp_path: Path) -> None: ...
+def test_provider_tracked_tree_clean_allows_untracked_config_file(tmp_path: Path) -> None: ...
+```
+
+The third test must create an untracked `config/config.toml` and still expect `True` because the body pin concerns tracked provider source while runtime configuration is intentionally local.
+
+- [ ] **Step 2: Run identity tests and observe RED**
+
+```bash
+pytest -q tests/test_dev_openmanus_live.py -k "git_head or tracked_tree"
+```
+
+- [ ] **Step 3: Implement exact Git-body checks**
+
+Use only shell-free Git calls:
+
+```python
+def resolve_git_head(repo: Path) -> str:
+    completed = subprocess.run(
+        ["git", "-C", str(repo.resolve()), "rev-parse", "HEAD"],
+        check=False,
+        capture_output=True,
+        text=True,
+        shell=False,
+    )
+    value = completed.stdout.strip()
+    if completed.returncode != 0 or re.fullmatch(r"[0-9a-f]{40}", value) is None:
+        raise ValueError("provider checkout identity unavailable")
+    return value
+
+
+def provider_tracked_tree_clean(repo: Path) -> bool:
+    completed = subprocess.run(
+        [
+            "git", "-C", str(repo.resolve()), "status", "--porcelain=v1",
+            "--untracked-files=no",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        shell=False,
+    )
+    if completed.returncode != 0:
+        raise ValueError("provider checkout status unavailable")
+    return completed.stdout == ""
+```
+
+- [ ] **Step 4: Write RED explicit-environment tests**
 
 Add:
 
 ```python
-def test_resolve_git_head_requires_exact_pinned_sha(...): ...
-def test_run_refuses_wrong_provider_checkout_sha(...): ...
-def test_run_refuses_output_directory_inside_workspace(...): ...
-def test_run_refuses_missing_model_config_class(...): ...
+def test_child_env_contains_only_pythonpath_and_forwarded_names(tmp_path: Path) -> None: ...
+def test_child_env_refuses_missing_forwarded_name(tmp_path: Path) -> None: ...
 ```
 
-For unit tests, initialize temporary Git repositories and monkeypatch `PINNED_OPENMANUS_SHA` only at the module boundary when testing generic `resolve_git_head`; the actual live-run test must prove a mismatch against the real frozen constant returns/refuses with `PIN_MISMATCH` before provider launch.
-
-- [ ] **Step 2: Run pin/boundary tests and confirm RED**
-
-Run:
-
-```bash
-pytest -q tests/test_dev_openmanus_live.py -k "git_head or provider_checkout or output_directory or model_config"
-```
-
-Expected: FAIL because identity/environment runner helpers are absent.
-
-- [ ] **Step 3: Implement exact Git identity and path-boundary helpers**
-
-`resolve_git_head(repo)` must use:
+Expected mapping for `forwarded_names=("HTTPS_PROXY",)` is exactly:
 
 ```python
-subprocess.run(
-    ["git", "-C", str(repo), "rev-parse", "HEAD"],
-    check=False,
-    capture_output=True,
-    text=True,
-    shell=False,
-)
+{
+    "PYTHONPATH": str(provider_checkout.resolve()),
+    "HTTPS_PROXY": source_env["HTTPS_PROXY"],
+}
 ```
 
-Require return code 0 and a lowercase 40-hex SHA; otherwise raise `ValueError("provider checkout identity unavailable")`.
+No `PATH`, `HOME`, API key, or unrelated parent environment variable appears unless explicitly named.
 
-Add a path helper equivalent to:
-
-```python
-def _is_within(parent: Path, child: Path) -> bool:
-    try:
-        child.resolve().relative_to(parent.resolve())
-        return True
-    except ValueError:
-        return False
-```
-
-`run_live_specimen` must refuse if `output_dir` is within `workspace_root`.
-
-- [ ] **Step 4: Write RED tests for explicit child environment and secret non-serialization**
-
-Add tests proving:
-
-```python
-def test_child_env_contains_only_pythonpath_and_explicit_forwarded_names(...): ...
-def test_missing_requested_forwarded_env_name_refuses(...): ...
-def test_bundle_records_forwarded_variable_names_not_values(...): ...
-def test_secret_value_never_appears_in_bundle_json(...): ...
-```
-
-`build_child_env()` must always set exactly one harness-owned variable:
-
-```text
-PYTHONPATH=<absolute pinned OpenManus checkout>
-```
-
-plus explicitly named forwarded values. It must not forward `PATH`, `HOME`, or any other parent variable unless the operator explicitly names it.
-
-- [ ] **Step 5: Run env tests and confirm RED**
-
-Run:
-
-```bash
-pytest -q tests/test_dev_openmanus_live.py -k "child_env or secret or forwarded"
-```
-
-Expected: FAIL.
-
-- [ ] **Step 6: Implement explicit environment construction**
-
-Implement:
+- [ ] **Step 5: Implement explicit child environment**
 
 ```python
 def build_child_env(
@@ -380,21 +362,77 @@ def build_child_env(
     return env
 ```
 
-Bundle/runtime metadata records only `forwarded_env_names`, never values.
+- [ ] **Step 6: Write RED durable-receipt hygiene tests**
 
-- [ ] **Step 7: Create a fake live provider and RED end-to-end runner test**
+Construct an `OpenManusProviderReceipt` whose `observations` contain file content and whose `stderr` contains a fake credential marker. Assert the durable projection:
 
-Create `tests/fixtures/fake_openmanus_live_provider.py` as a JSON-stdio executable fixture. It must:
+```python
+def test_safe_provider_receipt_drops_free_form_content_and_stderr() -> None: ...
+```
 
-1. read one envelope from stdin;
-2. validate the expected envelope schema/body/effect;
-3. for normal mode, read `specimen/input.txt`, write exactly `OPENMANUS-LIVE-001 OUTPUT\n` to `specimen/output.txt`, and emit a canonical `loadout.openmanus-worker-result/v0` `COMPLETED` object;
-4. support hostile request modes through the request string suffix or a dedicated bounded parameter:
-   - `unexpected-delta` writes `specimen/rogue.txt` too;
-   - `wrong-output` writes incorrect bytes;
-   - `provider-refused` emits `REFUSED` without mutation.
+Required durable shape:
 
-The normal result should report:
+```python
+{
+    "body_time_id": PINNED_BODY_ID,
+    "capability": "worker.mutate",
+    "effect": "LOCAL_MUTATE",
+    "target": "workspace:specimen",
+    "precondition_state": "workspace-state:sha256:<digest>",
+    "disposition": "COMPLETED",
+    "observed_post_state": "<string-or-null>",
+    "artifact_paths": ["specimen/output.txt"],
+    "observation_tools": ["loadout_read_text", "loadout_write_text"],
+    "steps_executed": 2,
+    "termination": "TERMINATE",
+    "stderr_present": True,
+}
+```
+
+Do not serialize raw `observations`, raw artifact payloads, raw `stderr`, or credential/config contents.
+
+- [ ] **Step 7: Implement `safe_provider_receipt()`**
+
+The function must accept only the existing receipt dataclass and extract structural fields. For artifacts, retain only string `path` values. For observations, retain only string `tool` names. Any other provider testimony is intentionally omitted from the durable specimen bundle.
+
+This is the credential-hygiene interpretation of the design requirement `credentials are absent from preserved receipts`: the adapter still holds rich provider testimony in-memory for the occurrence, while the durable field artifact is a safe projection.
+
+- [ ] **Step 8: Run Task 2 tests and observe GREEN**
+
+```bash
+pytest -q tests/test_dev_openmanus_live.py
+```
+
+- [ ] **Step 9: Commit Task 2**
+
+```bash
+git add src/loadout/dev/openmanus_live.py tests/test_dev_openmanus_live.py
+git commit -m "feat: harden OpenManus live provider identity"
+```
+
+---
+
+### Task 3: Build the credential-free live harness with a fake provider
+
+**Files:**
+- Modify: `src/loadout/dev/openmanus_live.py`
+- Modify: `tests/test_dev_openmanus_live.py`
+- Create: `tests/fixtures/fake_openmanus_live_provider.py`
+
+**Interfaces:**
+- Consumes: Task 1 verifier, Task 2 identity/env/receipt helpers, existing `compile_world()`, `invoke_effect()`, model types, and `OpenManusJsonStdioAdapter`.
+- Produces:
+  - `run_live_specimen(*, provider_checkout: Path, provider_command: tuple[str, ...], workspace_root: Path, output_dir: Path, model_config_class: str, forwarded_env_names: tuple[str, ...], source_env: Mapping[str, str], timeout_seconds: float = 30.0, max_steps: int = 20) -> Path`
+
+- [ ] **Step 1: Create the fake live provider**
+
+`tests/fixtures/fake_openmanus_live_provider.py` must select behavior only from its first argv argument:
+
+```python
+mode = sys.argv[1] if len(sys.argv) > 1 else "ok"
+```
+
+It reads one JSON envelope from stdin. In `ok` mode it writes exactly `OPENMANUS-LIVE-001 OUTPUT\n` to `<workspace_root>/specimen/output.txt` and emits:
 
 ```json
 {
@@ -402,91 +440,111 @@ The normal result should report:
   "disposition": "COMPLETED",
   "observed_post_state": "fake-live:state:1",
   "artifacts": [{"path": "specimen/output.txt"}],
-  "observations": [{"fixture": "OPENMANUS-LIVE-001"}],
+  "observations": [
+    {"tool": "loadout_read_text", "relative_path": "specimen/input.txt", "content": "OPENMANUS-LIVE-001 INPUT\n"},
+    {"tool": "loadout_write_text", "relative_path": "specimen/output.txt"}
+  ],
   "provider_receipt": {"steps_executed": 2, "termination": "FAKE_LIVE_COMPLETE"}
 }
 ```
 
-Write a test invoking `run_live_specimen()` with the fake provider command and a monkeypatched `resolve_git_head()` that returns the exact frozen pin. Expected result: bundle path exists, output file is correct, bundle contains both provider/effect receipts, and `verify_live_bundle()` returns `(True, ())`.
+Additional test-only argv modes:
 
-- [ ] **Step 8: Run the end-to-end runner test and confirm RED**
-
-Run:
-
-```bash
-pytest -q tests/test_dev_openmanus_live.py -k run_live_specimen
+```text
+unexpected-delta  -> also writes specimen/rogue.txt
+wrong-output      -> writes WRONG\n to output
+provider-refused  -> emits REFUSED without mutation
 ```
 
-Expected: FAIL because `run_live_specimen` is absent.
+- [ ] **Step 2: Write RED runner tests**
 
-- [ ] **Step 9: Implement the minimal live specimen runner**
+Add concrete tests for:
 
-`run_live_specimen()` must:
+```python
+def test_run_refuses_wrong_provider_head_before_launch(tmp_path: Path, monkeypatch) -> None: ...
+def test_run_refuses_dirty_tracked_provider_tree(tmp_path: Path, monkeypatch) -> None: ...
+def test_run_refuses_output_inside_workspace(tmp_path: Path, monkeypatch) -> None: ...
+def test_run_refuses_missing_model_config_class(tmp_path: Path, monkeypatch) -> None: ...
+def test_run_refuses_missing_provider_config_toml(tmp_path: Path, monkeypatch) -> None: ...
+def test_run_live_specimen_fake_provider_passes_independent_verifier(tmp_path: Path, monkeypatch) -> None: ...
+def test_run_preserves_refused_provider_bundle(tmp_path: Path, monkeypatch) -> None: ...
+def test_verifier_rejects_fake_unexpected_delta(tmp_path: Path, monkeypatch) -> None: ...
+def test_verifier_rejects_fake_wrong_output(tmp_path: Path, monkeypatch) -> None: ...
+```
 
-1. resolve/validate all paths and output-outside-workspace rule;
-2. require exact provider checkout SHA `PINNED_OPENMANUS_SHA` before provider launch;
-3. require non-empty `model_config_class`;
-4. create `specimen/` if needed and write the exact input fixture;
-5. refuse if any pre-existing path exists under `specimen/` other than the exact input file with exact expected bytes;
-6. snapshot workspace before provider invocation and derive `precondition_state = workspace_state_id(before)`;
-7. construct an `AdapterBody` with only `CapabilitySpec("worker.mutate", EffectClass.LOCAL_MUTATE)`;
-8. compile one world with task id `OPENMANUS-LIVE-001`, cut target `workspace:specimen`, and the exact pinned body id;
-9. construct one `EffectIntent` with capability `worker.mutate`, effect `LOCAL_MUTATE`, target `workspace:specimen`, exact body id, the derived precondition state, and request text exactly instructing the frozen output mutation/no-other-path rule;
-10. construct `OpenManusJsonStdioAdapter` using the explicit provider argv, exact workspace root, exact body id, allowlisted child env, timeout, and max steps;
-11. call `invoke_effect(compiled, intent, {PINNED_BODY_ID: adapter}, current_state=precondition_state)` exactly once;
-12. snapshot workspace after invocation;
-13. serialize one bundle JSON with strict keys: `schema`, `provider`, `specimen`, `before`, `after`, `provider_receipt`, `effect_receipt`, `runtime`;
-14. serialize dataclass/enum fields into plain JSON without secret values;
-15. write atomically to `<output_dir>/openmanus-live-001.json` via temporary sibling + `Path.replace()`;
-16. return the bundle path regardless of provider `COMPLETED|REFUSED|ERROR` after launch so evidence survives failure; pre-launch configuration errors raise `ValueError` and do not create a success-looking bundle.
+For fake-provider tests, monkeypatch `resolve_git_head()` to the exact pin and `provider_tracked_tree_clean()` to `True`; create an empty `config/config.toml` only as an existence witness. The fake provider never reads it.
 
-Record runtime metadata:
+- [ ] **Step 3: Run runner tests and observe RED**
+
+```bash
+pytest -q tests/test_dev_openmanus_live.py -k "run_ or fake_"
+```
+
+- [ ] **Step 4: Implement `run_live_specimen()`**
+
+The function must execute this exact sequence:
+
+1. resolve `provider_checkout`, `workspace_root`, and `output_dir`;
+2. require all three directories to exist, creating only `output_dir` when its parent exists;
+3. refuse if `output_dir` is inside `workspace_root`;
+4. require `resolve_git_head(provider_checkout) == PINNED_OPENMANUS_SHA`;
+5. require `provider_tracked_tree_clean(provider_checkout) is True`;
+6. require `<provider_checkout>/config/config.toml` to exist, but never open or read it;
+7. require non-empty `model_config_class`;
+8. prepare `specimen/input.txt` with exact frozen bytes and refuse any pre-existing `specimen/output.txt` or additional path under `specimen/`;
+9. snapshot workspace and derive `precondition_state`;
+10. construct one `AdapterBody` advertising only `CapabilitySpec("worker.mutate", EffectClass.LOCAL_MUTATE)`;
+11. compile task id `OPENMANUS-LIVE-001` with cut target `workspace:specimen`;
+12. construct one `EffectIntent` for capability `worker.mutate`, effect `LOCAL_MUTATE`, target `workspace:specimen`, exact pinned body id, derived precondition state, and one `request` parameter whose text requires the frozen output and forbids other path changes;
+13. build the explicit child env from Task 2;
+14. construct `OpenManusJsonStdioAdapter` with exact body id, provided argv, workspace, timeout, max steps, and explicit env;
+15. call `invoke_effect()` exactly once;
+16. snapshot workspace after invocation;
+17. project the latest provider receipt with `safe_provider_receipt()` if a provider launch produced one;
+18. serialize the effect receipt structurally with `dataclasses.asdict()` plus enum-value conversion;
+19. record runtime metadata: Python version, exact LOADOUT Git head, max steps, timeout, sorted forwarded env names, and `cleanup="provider_process_exited"`;
+20. write one atomic JSON bundle to `<output_dir>/openmanus-live-001.json` using a temporary sibling and `Path.replace()`;
+21. return the bundle path even for provider `REFUSED` or `ERROR` after launch so failed evidence remains inspectable.
+
+Pre-launch configuration failures raise `ValueError` and must not create a success-looking bundle.
+
+The bundle's `provider` object records only:
 
 ```json
 {
-  "python": "<sys.version split first token>",
-  "loadout_head": "<git head or explicit unavailable marker if not a checkout>",
-  "max_steps": 20,
-  "timeout_seconds": 30.0,
-  "forwarded_env_names": ["NAME_ONLY"],
-  "cleanup": "provider_process_exited"
+  "checkout_sha": "3309bf4e416fb1c74b008f3e86494439a31bad53",
+  "body_time_id": "openmanus.worker.json-stdio/v0@3309bf4e416fb1c74b008f3e86494439a31bad53",
+  "tracked_tree_clean": true,
+  "config_source": "config/config.toml",
+  "model_config_class": "<operator supplied non-secret label>"
 }
 ```
 
-Do not include environment values or provider command arguments that contain secret values. Record provider argv only as executable/script basenames if needed; otherwise omit it.
+Never serialize config contents, API keys, environment values, or raw provider stderr/observation content.
 
-- [ ] **Step 10: Add hostile-run tests**
-
-Use fake provider modes to prove:
-
-```python
-def test_runner_preserves_refused_provider_bundle(...): ...
-def test_verifier_rejects_fake_unexpected_delta(...): ...
-def test_verifier_rejects_fake_wrong_output(...): ...
-```
-
-The runner should preserve evidence; the verifier decides whether the occurrence passes.
-
-- [ ] **Step 11: Run Task 2 tests and confirm GREEN**
-
-Run:
+- [ ] **Step 5: Run Task 3 and neighboring OpenManus tests**
 
 ```bash
-pytest -q tests/test_dev_openmanus_live.py tests/test_dev_openmanus.py tests/test_dev_openmanus_strict_result.py tests/test_dev_openmanus_target_boundary.py
+pytest -q \
+  tests/test_dev_openmanus_live.py \
+  tests/test_dev_openmanus.py \
+  tests/test_dev_openmanus_strict_result.py \
+  tests/test_dev_openmanus_target_boundary.py \
+  tests/test_contrib_openmanus_ops.py
 ```
 
 Expected: PASS.
 
-- [ ] **Step 12: Commit Task 2**
+- [ ] **Step 6: Commit Task 3**
 
 ```bash
 git add src/loadout/dev/openmanus_live.py tests/test_dev_openmanus_live.py tests/fixtures/fake_openmanus_live_provider.py
-git commit -m "feat: add bounded OpenManus live specimen harness"
+git commit -m "feat: add OPENMANUS-LIVE-001 harness"
 ```
 
 ---
 
-### Task 3: Add STATIC-NODE-friendly build and verify scripts
+### Task 4: Add STATIC-NODE-friendly build and verify commands
 
 **Files:**
 - Create: `scripts/openmanus-live-001.py`
@@ -494,23 +552,25 @@ git commit -m "feat: add bounded OpenManus live specimen harness"
 - Create: `tests/test_openmanus_live_scripts.py`
 
 **Interfaces:**
-- Consumes: `run_live_specimen()` and `verify_live_bundle()` from Task 2.
-- Produces stable operator commands suitable for STATIC-NODE `--build` and `--verify`.
+- Consumes: `run_live_specimen()` and `verify_live_bundle()`.
+- Produces two stable CLI surfaces suitable for STATIC-NODE `--build` and `--verify`.
 
-- [ ] **Step 1: Write RED subprocess tests for CLI argument discipline**
+- [ ] **Step 1: Write RED CLI tests**
 
-Add tests that invoke each script with `sys.executable` and prove:
+Create subprocess tests that prove these exact rules:
 
-```python
-def test_build_cli_requires_absolute_provider_checkout(...): ...
-def test_build_cli_requires_absolute_workspace_and_output(...): ...
-def test_build_cli_requires_model_config_class(...): ...
-def test_build_cli_rejects_output_inside_workspace(...): ...
-def test_verify_cli_returns_zero_only_for_verified_bundle(...): ...
-def test_verify_cli_returns_one_and_prints_reason_codes_for_bad_bundle(...): ...
+```text
+build requires absolute --provider-checkout
+build requires absolute --provider-python
+build requires absolute --workspace
+build requires absolute --output
+build requires non-empty --model-config-class
+build refuses output inside workspace
+verify returns 0 only for independently verified bundle
+verify returns 1 and stable reason codes for failed evidence
 ```
 
-The build CLI arguments are frozen as:
+Frozen build CLI:
 
 ```text
 --provider-checkout ABS_PATH
@@ -518,52 +578,55 @@ The build CLI arguments are frozen as:
 --workspace ABS_PATH
 --output ABS_PATH
 --model-config-class LABEL
---pass-env NAME       # repeatable; optional
---timeout-seconds N   # optional; default 30
---max-steps N         # optional; default 20
+--pass-env NAME       # repeatable, optional
+--timeout-seconds N   # default 30
+--max-steps N         # default 20
 ```
 
-The provider command built by the script is exactly:
-
-```text
-<provider-python> <LOADOUT_REPO>/contrib/openmanus/worker.py
-```
-
-The verify CLI arguments are:
+Frozen verify CLI:
 
 ```text
 --workspace ABS_PATH
 --bundle ABS_PATH
 ```
 
-- [ ] **Step 2: Run CLI tests and confirm RED**
-
-Run:
+- [ ] **Step 2: Run CLI tests and observe RED**
 
 ```bash
 pytest -q tests/test_openmanus_live_scripts.py
 ```
 
-Expected: FAIL because scripts do not exist.
+- [ ] **Step 3: Implement `scripts/openmanus-live-001.py`**
 
-- [ ] **Step 3: Implement the build script as a thin adapter**
+The script must:
 
-`scripts/openmanus-live-001.py` must:
+```python
+repo_root = Path(__file__).resolve().parents[1]
+provider_command = (
+    str(provider_python),
+    str(repo_root / "contrib" / "openmanus" / "worker.py"),
+)
+bundle = run_live_specimen(
+    provider_checkout=provider_checkout,
+    provider_command=provider_command,
+    workspace_root=workspace,
+    output_dir=output,
+    model_config_class=args.model_config_class,
+    forwarded_env_names=tuple(args.pass_env),
+    source_env=os.environ,
+    timeout_seconds=args.timeout_seconds,
+    max_steps=args.max_steps,
+)
+print(bundle)
+```
 
-1. parse only the frozen arguments above;
-2. require all path arguments absolute before resolving;
-3. require `provider-python` to exist and be a file;
-4. locate LOADOUT repo root from `Path(__file__).resolve().parents[1]`;
-5. construct provider command `(str(provider_python), str(repo_root / "contrib/openmanus/worker.py"))`;
-6. pass `os.environ` only as the source mapping to `run_live_specimen`; the function forwards only names explicitly listed by `--pass-env`;
-7. print only the resulting bundle path on stdout;
-8. print configuration/refusal diagnostics to stderr;
-9. return exit code 0 only when a bundle is produced; provider completion is intentionally not the build script's final truth because independent verification is a separate STATIC-NODE phase;
-10. never print forwarded environment values.
+Validation must occur before this call. The script returns 0 when an evidence bundle is produced, not when the provider self-reports success; independent verification is the next phase.
 
-- [ ] **Step 4: Implement the verify script independently**
+Never print environment values.
 
-`scripts/verify-openmanus-live-001.py` must call only `verify_live_bundle()` and:
+- [ ] **Step 4: Implement `scripts/verify-openmanus-live-001.py`**
+
+Use exactly:
 
 ```python
 passed, reasons = verify_live_bundle(bundle_path, workspace_root)
@@ -574,29 +637,22 @@ print("OPENMANUS-LIVE-001 HOLD: " + ",".join(reasons), file=sys.stderr)
 raise SystemExit(1)
 ```
 
-The verify script must not launch OpenManus, consult model configuration, or trust provider self-report beyond the preserved receipt fields checked by the verifier.
+It must not launch OpenManus or inspect provider configuration.
 
-- [ ] **Step 5: Add a fake-provider script composition test**
+- [ ] **Step 5: Prove script composition without a production fake-provider flag**
 
-Because the build CLI freezes the genuine `contrib/openmanus/worker.py` command, do not add a hidden `--fake-provider` production flag. Instead test CLI parsing/path behavior directly and keep end-to-end fake provider composition at the Python API layer from Task 2. Add one subprocess test of the verifier against a bundle/workspace generated by the Task 2 API.
+Do not add `--fake-provider`. Generate a passing bundle/workspace through Task 3's Python API, then invoke only the verifier script in subprocess and assert exit 0. CLI build tests remain argument/boundary tests because the production build command is intentionally locked to `contrib/openmanus/worker.py`.
 
-This preserves the law:
-
-```text
-production CLI surface != test-only provider injection surface
-```
-
-- [ ] **Step 6: Run CLI and full OpenManus tests and confirm GREEN**
-
-Run:
+- [ ] **Step 6: Run Task 4 tests**
 
 ```bash
-pytest -q tests/test_openmanus_live_scripts.py tests/test_dev_openmanus_live.py tests/test_dev_openmanus.py tests/test_contrib_openmanus_ops.py
+python -m compileall -q src scripts
+pytest -q tests/test_openmanus_live_scripts.py tests/test_dev_openmanus_live.py
 ```
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit Task 3**
+- [ ] **Step 7: Commit Task 4**
 
 ```bash
 git add scripts/openmanus-live-001.py scripts/verify-openmanus-live-001.py tests/test_openmanus_live_scripts.py
@@ -605,20 +661,19 @@ git commit -m "feat: expose OPENMANUS-LIVE-001 build and verify commands"
 
 ---
 
-### Task 4: Freeze the field gate, documentation, and branch-wide proof
+### Task 5: Freeze the field gate and branch-wide proof
 
 **Files:**
 - Create: `evals/OPENMANUS-LIVE-001.md`
 - Modify: `README.md`
-- Modify: `tests/test_dev_openmanus_live.py` only if a final documentation/receipt invariant needs executable proof.
 
 **Interfaces:**
-- Consumes: completed harness/scripts from Tasks 1-3 and the already-existing STATIC-NODE CLI contract from TranchNode PR #73.
-- Produces: durable instructions for a human-run nested specimen and a precise claim boundary.
+- Consumes: Tasks 1-4 plus TranchNode's existing `STATIC-NODE-001` CLI contract.
+- Produces a precise pre-live receipt and copyable field-run commands.
 
-- [ ] **Step 1: Create the eval document at the pre-live state**
+- [ ] **Step 1: Create the eval document without inventing live evidence**
 
-`evals/OPENMANUS-LIVE-001.md` starts with:
+Start `evals/OPENMANUS-LIVE-001.md` with:
 
 ```markdown
 # OPENMANUS-LIVE-001 — Nested Live Provider Conformance
@@ -631,7 +686,7 @@ git commit -m "feat: expose OPENMANUS-LIVE-001 build and verify commands"
 OPENMANUS LIVE PROVIDER CONFORMANCE: NOT RUN
 ```
 
-Document the three witness layers and repeat these non-claims verbatim:
+Repeat these non-claims:
 
 ```text
 JSON boundary != OS sandbox
@@ -641,13 +696,11 @@ STATIC-NODE VERIFIED != promotion
 Workmark != authority
 ```
 
-Include an empty field-occurrence section whose state is explicitly `NOT RUN`; do not invent dates, model/provider identities, receipt hashes, or pass results before the actual operator occurrence.
+Leave the field occurrence explicitly `NOT RUN`; do not pre-write a model, date, receipt hash, Workmark, or PASS.
 
-- [ ] **Step 2: Document exact nested operator commands in README**
+- [ ] **Step 2: Document direct LOADOUT field commands**
 
-Document two stages.
-
-First, direct LOADOUT harness command inside a prepared child:
+README command shape:
 
 ```bash
 python scripts/openmanus-live-001.py \
@@ -655,15 +708,16 @@ python scripts/openmanus-live-001.py \
   --provider-python /absolute/path/to/openmanus-venv/bin/python \
   --workspace /absolute/path/to/disposable-workspace \
   --output /absolute/path/to/receipts \
-  --model-config-class '<non-secret-label>' \
-  --pass-env '<explicit-required-variable-name>'
+  --model-config-class 'local config.toml / chosen model class'
 
 python scripts/verify-openmanus-live-001.py \
   --workspace /absolute/path/to/disposable-workspace \
   --bundle /absolute/path/to/receipts/openmanus-live-001.json
 ```
 
-Second, show STATIC-NODE composition conceptually using the existing TranchNode command without claiming a cross-repo dependency:
+Explain that the exact pinned OpenManus checkout must have a local `config/config.toml`; LOADOUT checks its existence but does not read or serialize it. The pinned OpenManus source itself resolves configuration relative to its own project root, so the provider process does not need LOADOUT to ingest credentials.
+
+- [ ] **Step 3: Document STATIC-NODE composition without creating a cross-repo dependency**
 
 ```bash
 npm run static-node:001 -- \
@@ -674,22 +728,25 @@ npm run static-node:001 -- \
   --output /absolute/path/to/static-node-receipts
 ```
 
-State clearly that the current STATIC-NODE implementation lives on its own draft carrier until separately promoted/merged; the nested field run must use a checkout containing that implementation.
+State that STATIC-NODE currently lives on its own draft carrier until separately promoted/merged; the field machine must use a checkout containing that implementation.
 
-- [ ] **Step 3: Run focused proof**
-
-Run:
+- [ ] **Step 4: Run focused verification**
 
 ```bash
 python -m compileall -q src scripts
-pytest -q tests/test_dev_openmanus_live.py tests/test_openmanus_live_scripts.py tests/test_dev_openmanus.py tests/test_dev_openmanus_strict_result.py tests/test_dev_openmanus_target_boundary.py tests/test_contrib_openmanus_ops.py tests/test_dev_public_api.py
+pytest -q \
+  tests/test_dev_openmanus_live.py \
+  tests/test_openmanus_live_scripts.py \
+  tests/test_dev_openmanus.py \
+  tests/test_dev_openmanus_strict_result.py \
+  tests/test_dev_openmanus_target_boundary.py \
+  tests/test_contrib_openmanus_ops.py \
+  tests/test_dev_public_api.py
 ```
 
-Expected: PASS.
+Expected: PASS without credentials or OpenManus installed.
 
-- [ ] **Step 4: Run branch-wide repository verification**
-
-Run the same commands represented by existing CI plus script compilation:
+- [ ] **Step 5: Run branch-wide verification**
 
 ```bash
 python -m pip install -e ".[test]"
@@ -697,66 +754,53 @@ python -m compileall -q src scripts
 pytest -q
 ```
 
-Expected: PASS with no credential requirement and no OpenManus installation requirement for ordinary CI.
+Expected: PASS.
 
-- [ ] **Step 5: Inspect the final diff for authority expansion**
-
-Explicitly verify the branch diff contains no changes to:
-
-```text
-EffectClass
-OwnerGate
-core membrane effect semantics
-OpenManus adapter allowlist
-STATIC-NODE promotion semantics
-```
-
-Search for accidental dangerous surfaces:
+- [ ] **Step 6: Perform an authority-expansion grep**
 
 ```bash
-grep -R "shell=True\|os\.environ\.copy\|REMOTE_MUTATE\|PUBLISH\|LAND" -n src/loadout/dev/openmanus_live.py scripts tests/test_dev_openmanus_live.py tests/test_openmanus_live_scripts.py
+grep -R "shell=True\|os\.environ\.copy\|REMOTE_MUTATE\|PUBLISH\|LAND" -n \
+  src/loadout/dev/openmanus_live.py scripts tests/test_dev_openmanus_live.py tests/test_openmanus_live_scripts.py
 ```
 
-Expected:
+Expected: no `shell=True`, no whole-environment copy, and no harness request for remote/publish/land effects.
 
-- no `shell=True`;
-- no wholesale environment copy;
-- no live harness request for `REMOTE_MUTATE`, `PUBLISH`, or `LAND`.
-
-- [ ] **Step 6: Commit Task 4**
+- [ ] **Step 7: Commit docs and gate**
 
 ```bash
 git add README.md evals/OPENMANUS-LIVE-001.md
 git commit -m "docs: freeze OPENMANUS-LIVE-001 field gate"
 ```
 
-- [ ] **Step 7: Update PR #18 receipt only after fresh CI is green**
+- [ ] **Step 8: Update PR #18 only after fresh exact-head CI is green**
 
-Update the PR body with:
+Add exact final head and exact successful workflow run id, then state:
 
 ```text
 OPENMANUS-LIVE-001 HARNESS: PASS
 OPENMANUS LIVE PROVIDER CONFORMANCE: NOT RUN
 ```
 
-Include the exact final head SHA and exact successful workflow run id. Keep the PR draft until the genuine pinned provider occurrence is run and reviewed.
-
-Do not change the claim to live-provider PASS from fake-provider/CI evidence.
+Keep PR #18 draft. Fake-provider CI must never be used to claim live-provider conformance.
 
 ---
 
 ## Field Occurrence After Harness Implementation
 
-The real provider occurrence is intentionally not an ordinary implementation-plan task because it requires a machine with the exact pinned OpenManus checkout and deliberately supplied model/runtime credentials.
+The genuine occurrence is intentionally separate from credential-free implementation because it requires a machine containing:
 
-The human/operator field run must:
+- the exact pinned OpenManus checkout;
+- a clean tracked provider tree;
+- a local untracked/ignored `config/config.toml` with the chosen runtime/model configuration;
+- the provider virtual environment;
+- a checkout containing STATIC-NODE-001.
 
-1. use an exact clean LOADOUT parent containing this harness;
-2. use STATIC-NODE-001 to create the isolated child;
-3. run the build script with the exact pinned provider checkout and explicitly named credential/config variables;
-4. run the independent verify script as STATIC-NODE's verify command;
-5. inspect LOADOUT bundle, provider receipt, effect receipt, STATIC-NODE attempt receipt, child delta, and optional Workmark;
-6. confirm `HOLD` and `promotionAuthorized=false` remain intact;
-7. only then amend `evals/OPENMANUS-LIVE-001.md` with the exact dated occurrence facts and change the specimen-scoped claim to `PASS FOR OPENMANUS-LIVE-001 SPECIMEN` if every success condition from the design is met.
+The operator then runs the nested specimen, inspects LOADOUT's bundle plus STATIC-NODE's attempt receipt/delta/optional Workmark, and confirms `HOLD` with `promotionAuthorized=false`.
+
+Only after one exact occurrence satisfies every success condition in the design may `evals/OPENMANUS-LIVE-001.md` change to:
+
+```text
+OPENMANUS LIVE PROVIDER CONFORMANCE: PASS FOR OPENMANUS-LIVE-001 SPECIMEN
+```
 
 No implementation task may pre-write that PASS.
