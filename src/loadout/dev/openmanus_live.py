@@ -3,9 +3,11 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+import re
+import subprocess
 from typing import Mapping
 
-from loadout.dev.openmanus import OPENMANUS_ADAPTER_ID
+from loadout.dev.openmanus import OPENMANUS_ADAPTER_ID, OpenManusProviderReceipt
 
 PINNED_OPENMANUS_SHA = "3309bf4e416fb1c74b008f3e86494439a31bad53"
 PINNED_BODY_ID = f"{OPENMANUS_ADAPTER_ID}@{PINNED_OPENMANUS_SHA}"
@@ -27,6 +29,7 @@ _EXPECTED_BUNDLE_KEYS = frozenset(
         "runtime",
     }
 )
+_SHA40 = re.compile(r"^[0-9a-f]{40}$")
 
 
 def _sha256(data: bytes) -> str:
@@ -48,6 +51,80 @@ def workspace_state_id(snapshot: Mapping[str, str]) -> str:
         dict(sorted(snapshot.items())), sort_keys=True, separators=(",", ":")
     ).encode("utf-8")
     return "workspace-state:" + _sha256(payload)
+
+
+def resolve_git_head(repo: Path) -> str:
+    completed = subprocess.run(
+        ["git", "-C", str(repo.resolve()), "rev-parse", "HEAD"],
+        check=False,
+        capture_output=True,
+        text=True,
+        shell=False,
+    )
+    value = completed.stdout.strip()
+    if completed.returncode != 0 or _SHA40.fullmatch(value) is None:
+        raise ValueError("provider checkout identity unavailable")
+    return value
+
+
+def provider_tracked_tree_clean(repo: Path) -> bool:
+    completed = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repo.resolve()),
+            "status",
+            "--porcelain=v1",
+            "--untracked-files=no",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        shell=False,
+    )
+    if completed.returncode != 0:
+        raise ValueError("provider checkout status unavailable")
+    return completed.stdout == ""
+
+
+def build_child_env(
+    provider_checkout: Path,
+    forwarded_names: tuple[str, ...],
+    source_env: Mapping[str, str],
+) -> dict[str, str]:
+    env = {"PYTHONPATH": str(provider_checkout.resolve())}
+    for name in sorted(set(forwarded_names)):
+        if not name or "=" in name or name not in source_env:
+            raise ValueError(f"missing explicit environment variable: {name}")
+        env[name] = source_env[name]
+    return env
+
+
+def safe_provider_receipt(receipt: OpenManusProviderReceipt) -> dict[str, object]:
+    artifact_paths: list[str] = []
+    for artifact in receipt.artifacts:
+        if isinstance(artifact, dict) and isinstance(artifact.get("path"), str):
+            artifact_paths.append(artifact["path"])
+
+    observation_tools: list[str] = []
+    for observation in receipt.observations:
+        if isinstance(observation, dict) and isinstance(observation.get("tool"), str):
+            observation_tools.append(observation["tool"])
+
+    return {
+        "body_time_id": receipt.body_time_id,
+        "capability": receipt.capability,
+        "effect": receipt.effect.value,
+        "target": receipt.target,
+        "precondition_state": receipt.precondition_state,
+        "disposition": receipt.disposition,
+        "observed_post_state": receipt.observed_post_state,
+        "artifact_paths": artifact_paths,
+        "observation_tools": observation_tools,
+        "steps_executed": receipt.steps_executed,
+        "termination": receipt.termination,
+        "stderr_present": bool(receipt.stderr),
+    }
 
 
 def _as_dict(value: object) -> dict[str, object]:
