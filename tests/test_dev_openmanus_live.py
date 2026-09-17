@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import subprocess
+import sys
 
 import pytest
 
@@ -19,11 +20,14 @@ from loadout.dev.openmanus_live import (
     build_child_env,
     provider_tracked_tree_clean,
     resolve_git_head,
+    run_live_specimen,
     safe_provider_receipt,
     snapshot_workspace,
     verify_live_bundle,
     workspace_state_id,
 )
+
+FAKE_LIVE_PROVIDER = Path(__file__).parent / "fixtures" / "fake_openmanus_live_provider.py"
 
 
 def test_frozen_specimen_contract() -> None:
@@ -36,10 +40,8 @@ def test_frozen_specimen_contract() -> None:
 def test_snapshot_is_stable_and_content_addressed(tmp_path: Path) -> None:
     (tmp_path / "z.txt").write_bytes(b"z")
     (tmp_path / "a.txt").write_bytes(b"a")
-
     first = snapshot_workspace(tmp_path)
     second = snapshot_workspace(tmp_path)
-
     assert list(first) == ["a.txt", "z.txt"]
     assert first == second
     assert workspace_state_id(first).startswith("workspace-state:sha256:")
@@ -281,9 +283,7 @@ def test_safe_provider_receipt_drops_free_form_content_and_stderr() -> None:
         termination="TERMINATE",
         stderr=f"provider diagnostic {secret}",
     )
-
     safe = safe_provider_receipt(receipt)
-
     assert safe == {
         "body_time_id": PINNED_BODY_ID,
         "capability": "worker.mutate",
@@ -300,3 +300,179 @@ def test_safe_provider_receipt_drops_free_form_content_and_stderr() -> None:
     }
     serialized = json.dumps(safe, sort_keys=True)
     assert secret not in serialized
+
+
+def _live_paths(tmp_path: Path) -> tuple[Path, Path, Path]:
+    provider = tmp_path / "provider"
+    workspace = tmp_path / "workspace"
+    receipts = tmp_path / "receipts"
+    provider.mkdir()
+    workspace.mkdir()
+    receipts.mkdir()
+    config = provider / "config"
+    config.mkdir()
+    (config / "config.toml").write_text("# local-only\n", encoding="utf-8")
+    return provider, workspace, receipts
+
+
+def _run_fake_live(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mode: str = "ok",
+) -> tuple[Path, Path]:
+    provider, workspace, receipts = _live_paths(tmp_path)
+    monkeypatch.setattr("loadout.dev.openmanus_live.resolve_git_head", lambda _: PINNED_OPENMANUS_SHA)
+    monkeypatch.setattr("loadout.dev.openmanus_live.provider_tracked_tree_clean", lambda _: True)
+    command = (sys.executable, str(FAKE_LIVE_PROVIDER), mode)
+    bundle_path = run_live_specimen(
+        provider_checkout=provider,
+        provider_command=command,
+        workspace_root=workspace,
+        output_dir=receipts,
+        model_config_class="test/fake",
+        forwarded_env_names=(),
+        source_env={},
+        timeout_seconds=5.0,
+        max_steps=5,
+    )
+    return bundle_path, workspace
+
+
+def test_run_live_specimen_fake_provider_passes_independent_verifier(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bundle_path, workspace = _run_fake_live(tmp_path, monkeypatch)
+    assert verify_live_bundle(bundle_path, workspace) == (True, ())
+    bundle = _load_bundle(bundle_path)
+    assert bundle["provider"]["checkout_sha"] == PINNED_OPENMANUS_SHA
+    assert bundle["effect_receipt"]["semantic_authority"] is False
+
+
+def test_run_refuses_wrong_provider_head_before_launch(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    provider, workspace, receipts = _live_paths(tmp_path)
+    monkeypatch.setattr("loadout.dev.openmanus_live.resolve_git_head", lambda _: "0" * 40)
+    with pytest.raises(ValueError, match="PIN_MISMATCH"):
+        run_live_specimen(
+            provider_checkout=provider,
+            provider_command=(sys.executable, str(FAKE_LIVE_PROVIDER)),
+            workspace_root=workspace,
+            output_dir=receipts,
+            model_config_class="test/fake",
+            forwarded_env_names=(),
+            source_env={},
+        )
+    assert not (workspace / "specimen").exists()
+
+
+def test_run_refuses_dirty_tracked_provider_tree(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    provider, workspace, receipts = _live_paths(tmp_path)
+    monkeypatch.setattr("loadout.dev.openmanus_live.resolve_git_head", lambda _: PINNED_OPENMANUS_SHA)
+    monkeypatch.setattr("loadout.dev.openmanus_live.provider_tracked_tree_clean", lambda _: False)
+    with pytest.raises(ValueError, match="provider tracked tree must be clean"):
+        run_live_specimen(
+            provider_checkout=provider,
+            provider_command=(sys.executable, str(FAKE_LIVE_PROVIDER)),
+            workspace_root=workspace,
+            output_dir=receipts,
+            model_config_class="test/fake",
+            forwarded_env_names=(),
+            source_env={},
+        )
+
+
+def test_run_refuses_output_inside_workspace(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    provider, workspace, _ = _live_paths(tmp_path)
+    output = workspace / "receipts"
+    output.mkdir()
+    monkeypatch.setattr("loadout.dev.openmanus_live.resolve_git_head", lambda _: PINNED_OPENMANUS_SHA)
+    monkeypatch.setattr("loadout.dev.openmanus_live.provider_tracked_tree_clean", lambda _: True)
+    with pytest.raises(ValueError, match="outside provider workspace"):
+        run_live_specimen(
+            provider_checkout=provider,
+            provider_command=(sys.executable, str(FAKE_LIVE_PROVIDER)),
+            workspace_root=workspace,
+            output_dir=output,
+            model_config_class="test/fake",
+            forwarded_env_names=(),
+            source_env={},
+        )
+
+
+def test_run_refuses_missing_model_config_class(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    provider, workspace, receipts = _live_paths(tmp_path)
+    monkeypatch.setattr("loadout.dev.openmanus_live.resolve_git_head", lambda _: PINNED_OPENMANUS_SHA)
+    monkeypatch.setattr("loadout.dev.openmanus_live.provider_tracked_tree_clean", lambda _: True)
+    with pytest.raises(ValueError, match="model_config_class"):
+        run_live_specimen(
+            provider_checkout=provider,
+            provider_command=(sys.executable, str(FAKE_LIVE_PROVIDER)),
+            workspace_root=workspace,
+            output_dir=receipts,
+            model_config_class="",
+            forwarded_env_names=(),
+            source_env={},
+        )
+
+
+def test_run_refuses_missing_provider_config_toml(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    provider, workspace, receipts = _live_paths(tmp_path)
+    (provider / "config" / "config.toml").unlink()
+    monkeypatch.setattr("loadout.dev.openmanus_live.resolve_git_head", lambda _: PINNED_OPENMANUS_SHA)
+    monkeypatch.setattr("loadout.dev.openmanus_live.provider_tracked_tree_clean", lambda _: True)
+    with pytest.raises(ValueError, match="config/config.toml"):
+        run_live_specimen(
+            provider_checkout=provider,
+            provider_command=(sys.executable, str(FAKE_LIVE_PROVIDER)),
+            workspace_root=workspace,
+            output_dir=receipts,
+            model_config_class="test/fake",
+            forwarded_env_names=(),
+            source_env={},
+        )
+
+
+def test_run_preserves_refused_provider_bundle(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bundle_path, workspace = _run_fake_live(tmp_path, monkeypatch, "provider-refused")
+    assert bundle_path.exists()
+    passed, reasons = verify_live_bundle(bundle_path, workspace)
+    assert passed is False
+    assert "PROVIDER_NOT_COMPLETED" in reasons
+
+
+def test_verifier_rejects_fake_unexpected_delta(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bundle_path, workspace = _run_fake_live(tmp_path, monkeypatch, "unexpected-delta")
+    passed, reasons = verify_live_bundle(bundle_path, workspace)
+    assert passed is False
+    assert "UNEXPECTED_DELTA" in reasons
+
+
+def test_verifier_rejects_fake_wrong_output(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bundle_path, workspace = _run_fake_live(tmp_path, monkeypatch, "wrong-output")
+    passed, reasons = verify_live_bundle(bundle_path, workspace)
+    assert passed is False
+    assert "WRONG_OUTPUT" in reasons
