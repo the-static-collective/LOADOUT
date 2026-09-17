@@ -178,6 +178,63 @@ git.read_blob
 
 The adapter exposes no generic shell capability and no Git write or network operation. Checkout, switch, merge, reset, commit, push, fetch, pull, clone, remote mutation, credentials, arbitrary shell execution, and network clients are outside the v0 surface. Shell metacharacters remain literal argv data, path traversal refuses before Git invocation, and successful host reads do not grant merge, publication, mutation, or semantic authority.
 
+## OPENMANUS-BIND-001 — bounded execution limb
+
+> **LOADOUT constitutes; OpenManus moves.**
+
+`OpenManusJsonStdioAdapter` is the first provider-orchestration proof for an agentic worker behind the existing LOADOUT.dev membrane. The adapter does not let OpenManus choose what world it inhabits. An already-compiled `EffectIntent` crosses a canonical JSON-stdio boundary, the provider returns attributable testimony, and the existing membrane emits the narrow `EffectReceipt`.
+
+```text
+CompileReceipt + EffectIntent
+        ↓
+LOADOUT membrane
+        ↓
+OpenManusJsonStdioAdapter
+        ↓
+JSON-stdio worker occurrence
+        ↓
+OpenManusProviderReceipt
+        ↓
+existing EffectReceipt
+```
+
+The first body is pinned to the inspected upstream source identity:
+
+```text
+openmanus.worker.json-stdio/v0@3309bf4e416fb1c74b008f3e86494439a31bad53
+```
+
+V0 admits only:
+
+```text
+OBSERVE
+LOCAL_COMPUTE
+LOCAL_MUTATE
+```
+
+`LOCAL_MUTATE` is workspace-local. Remote proposal, remote mutation, publication, landing, Git writes, merge authority, ambient shell, browser reach, generic MCP reach, and automatic credential inheritance are not part of the v0 body.
+
+The optional shim in `contrib/openmanus/` uses OpenManus's `ToolCallAgent` reasoning loop with LOADOUT-scoped tools only:
+
+```text
+OBSERVE       -> loadout_read_text
+LOCAL_COMPUTE -> loadout_calculate
+LOCAL_MUTATE  -> loadout_read_text + loadout_write_text
+```
+
+It does not expose OpenManus's broader native execution surfaces. Rich worker observations and artifacts are preserved in a separate `OpenManusProviderReceipt`; they do not widen `EffectReceipt` and do not become semantic authority.
+
+Published contracts:
+
+- `schemas/openmanus-worker-envelope-v0.schema.json`
+- `schemas/openmanus-worker-result-v0.schema.json`
+
+Proof receipt:
+
+- `evals/OPENMANUS-BIND-001.md`
+
+The deterministic adapter contract is testable without OpenManus installed. **OpenManus live provider conformance is a separate gate and is not claimed until an exact pinned provider occurrence actually executes.** Declaring a workspace path is also not an OS sandbox claim.
+
 ### Dogram-shaped, not Dogram-dependent
 
 Dogram's metaoscillatory architecture informs the reflective hatch:
@@ -238,6 +295,8 @@ The first LOADOUT-specific hostile boundary is **`PROBE-BIND-001`**: a capabilit
 
 PHASELIFT `CROSSING-001 / RECONSTITUTE-001` additionally proves that one immutable Project 0 crossing may yield receiver-local `LIFT`, `DEGRADED`, `HOLD`, or `REFUSE`, and that lawful lifts may fork into distinct successor worlds without importing source authority or rewriting historical producers. See `evals/CROSSING-001.md`.
 
+`OPENMANUS-BIND-001` now proves the provider boundary variant: a capable agentic worker may remain useful without gaining the right to constitute its own effect surface. See `evals/OPENMANUS-BIND-001.md`.
+
 See `docs/specs/2026-08-28-probe-bind-open-berth.md` and `evals/PROBE-BIND-001.md`.
 
 ## Historical witness compatibility
@@ -246,8 +305,8 @@ Historical `loadout.manifest/v0` receipts remain witnesses rather than being rew
 
 ## Status
 
-**Executable v0 kernel candidate with a `LOADOUT.dev/v0` conformance floor.** The repository includes provider-independent capability compilation, body-declared reachable effects, exact adapter-body attribution, effect fencing, state-bound developer workflow gates, inert effect intents/receipts, deterministic fake-adapter hostile tests, the bounded PHASELIFT receiver/reconstitution proof, the host-supplied LIVE-SURFACE / CURRENT-ORGAN resolution protocol, and the real local-Git read-only host proof described above.
+**Executable v0 kernel candidate with a `LOADOUT.dev/v0` conformance floor.** The repository includes provider-independent capability compilation, body-declared reachable effects, exact adapter-body attribution, effect fencing, state-bound developer workflow gates, inert effect intents/receipts, deterministic fake-adapter hostile tests, the bounded PHASELIFT receiver/reconstitution proof, the host-supplied LIVE-SURFACE / CURRENT-ORGAN resolution protocol, the real local-Git read-only host proof, and the deterministic `OPENMANUS-BIND-001` JSON-stdio agent-provider boundary.
 
-It does **not** claim live provider orchestration, credential storage, merge/publication automation, background watching, a universal PHASELIFT runtime, full Dogram lowering, a production daemon, network authority, a master ontology, or a Dogram runtime dependency.
+It does **not** claim OpenManus live-provider conformance, credential storage, remote OpenManus effects, merge/publication automation, background watching, a universal PHASELIFT runtime, full Dogram lowering, a production daemon, network authority, a master ontology, a secure OS sandbox, or a Dogram runtime dependency.
 
-See `docs/specs/2026-08-28-loadout-dev-native-developer-toolset.md`, `docs/superpowers/plans/2026-08-28-loadout-dev-v0.md`, and `evals/LOADOUT-DEV-v0.md`.
+See `docs/specs/2026-08-28-loadout-dev-native-developer-toolset.md`, `docs/superpowers/plans/2026-08-28-loadout-dev-v0.md`, `docs/superpowers/specs/2026-09-01-openmanus-nervous-system-v0-design.md`, `docs/superpowers/plans/2026-09-01-openmanus-nervous-system-v0.md`, and `evals/OPENMANUS-BIND-001.md`.

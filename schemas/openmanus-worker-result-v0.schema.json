@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "loadout.openmanus-worker-result/v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "disposition",
+    "observed_post_state",
+    "artifacts",
+    "observations",
+    "provider_receipt"
+  ],
+  "properties": {
+    "schema": {"const": "loadout.openmanus-worker-result/v0"},
+    "disposition": {"enum": ["COMPLETED", "REFUSED", "ERROR"]},
+    "observed_post_state": {"type": ["string", "null"]},
+    "artifacts": {"type": "array"},
+    "observations": {"type": "array"},
+    "provider_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["steps_executed", "termination"],
+      "properties": {
+        "steps_executed": {"type": "integer", "minimum": 0},
+        "termination": {"type": "string"}
+      }
+    }
+  }
+}

@@ -21,6 +21,7 @@ from loadout.dev.model import (
     WorkflowEvent,
     parameter_map,
 )
+from loadout.dev.openmanus import OpenManusJsonStdioAdapter, OpenManusProviderReceipt
 from loadout.dev.workflow import (
     DEV_DEBUG,
     DEV_DOCS,
@@ -51,6 +52,7 @@ __all__ = [
     "Adapter", "AdapterBody", "CapabilityRequest", "CapabilitySpec", "CompileReceipt", "CompileRequest",
     "DEV_DEBUG", "DEV_DOCS", "DEV_IMPLEMENT", "DEV_LAND", "DEV_REVIEW",
     "EffectClass", "EffectIntent", "EffectReceipt", "FakeAdapter", "LocalGitReadAdapter", "OwnerGate",
+    "OpenManusJsonStdioAdapter", "OpenManusProviderReceipt",
     "RefusalReason", "WorkflowEvent", "compile_world", "invoke_effect", "parameter_map",
     "resolve_current_organ_from_git", "start_workflow", "transition",
     "MergeFormationInputError", "analyze_merge_formation", "render_merge_formation_receipt",
