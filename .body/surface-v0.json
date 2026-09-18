@@ -1,0 +1,84 @@
+{
+  "schema": "body.surface/v0",
+  "organ": "loadout",
+  "owner": "the-static-collective/LOADOUT",
+  "publication": {
+    "status": "owner-published",
+    "standard": "static-collective/body-surface/v0",
+    "scope": "interface-declaration"
+  },
+  "provides": [
+    {
+      "kind": "bounded-world-compile",
+      "protocol": "loadout.compile",
+      "version": "v0"
+    }
+  ],
+  "needs": [
+    {
+      "kind": "current-organ-manifest",
+      "protocol": "static-collective/current-organ",
+      "version": "v0"
+    }
+  ],
+  "interfaces": [
+    {
+      "name": "current-organ-input",
+      "direction": "accept",
+      "kind": "current-organ-manifest",
+      "protocol": "static-collective/current-organ",
+      "version": "v0"
+    },
+    {
+      "name": "compile-out",
+      "direction": "emit",
+      "kind": "bounded-world-compile",
+      "protocol": "loadout.compile",
+      "version": "v0"
+    }
+  ],
+  "measure": {
+    "declared": [
+      {
+        "dimension": "authority-mode",
+        "value": "explicit-gate-required",
+        "unit": "state"
+      },
+      {
+        "dimension": "runtime-network",
+        "value": "none-in-production-resolver",
+        "unit": "class"
+      }
+    ],
+    "observed": []
+  },
+  "receipts": [
+    {
+      "kind": "owner-contract",
+      "coordinate": "README.md"
+    },
+    {
+      "kind": "current-organ",
+      "coordinate": ".live/current-organ.json"
+    }
+  ],
+  "residual_fog": [
+    "This surface does not imply that any discovered current-organ manifest is relevant, bound, or authorized for a task."
+  ],
+  "non_authorities": [
+    "binding != permission",
+    "receipt != authority",
+    "discovery != invocation"
+  ],
+  "evidence": [
+    {
+      "kind": "owner-readme",
+      "coordinate": "README.md"
+    },
+    {
+      "kind": "current-organ",
+      "coordinate": ".live/current-organ.json"
+    }
+  ],
+  "authority": "none"
+}
