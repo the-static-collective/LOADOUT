@@ -6,14 +6,14 @@ or admissible.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any, Mapping, NamedTuple
 
 AXES = ("payload", "provenance", "validation", "authority")
 
 
-@dataclass(frozen=True)
-class AxisDelta:
+class AxisDelta(NamedTuple):
+    """Immutable value receipt with no module-registration dependency."""
+
     axis: str
     changed: bool
     before_present: bool
