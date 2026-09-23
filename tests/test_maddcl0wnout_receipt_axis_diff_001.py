@@ -20,6 +20,12 @@ def test_payload_only_delta_does_not_become_provenance_delta():
     assert mod.changed_axes(before, after) == ("payload",)
 
 
+def test_validation_only_delta_does_not_become_payload_or_authority_delta():
+    before = {"payload": "same", "validation": {"status": "pending"}, "authority": "none"}
+    after = {"payload": "same", "validation": {"status": "passed"}, "authority": "none"}
+    assert mod.changed_axes(before, after) == ("validation",)
+
+
 def test_missing_is_not_null():
     before = {"payload": None, "authority": "none"}
     after = {"authority": "none"}
@@ -33,6 +39,16 @@ def test_authority_change_stays_its_own_axis():
     before = {"payload": "same", "provenance": ["same"], "authority": "none"}
     after = {"payload": "same", "provenance": ["same"], "authority": "delegated:fixture-only"}
     assert mod.changed_axes(before, after) == ("authority",)
+
+
+def test_exact_replay_has_no_axis_delta():
+    receipt = {
+        "payload": {"digest": "p"},
+        "provenance": ["a"],
+        "validation": {"status": "passed"},
+        "authority": "none",
+    }
+    assert mod.changed_axes(receipt, dict(receipt)) == ()
 
 
 def test_untracked_fields_do_not_expand_the_contract():
